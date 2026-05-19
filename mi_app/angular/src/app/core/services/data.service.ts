@@ -123,6 +123,13 @@ export class DataService {
     });
   }
 
+  deleteInventoryItem(id: string): void {
+    this.http.delete(`${this.API_URL}inventory/${id}`, { headers: this.getAuthHeaders() }).subscribe({
+      next: () => this.fetchInventory(),
+      error: () => {}
+    });
+  }
+
   updateInventoryQuantity(id: string, quantity: number, recordedBy?: string, recordedByUser?: string | null): void {
     const currentItem = this.inventorySubject.value.find(i => i.id === id);
     if (!currentItem) return;

@@ -92,10 +92,16 @@
                 <small *ngIf="item.minStock">Mín: {{ item.minStock }} {{ item.unit }}</small>
                 <small *ngIf="item.recordedByUser">Registrado por: {{ item.recordedByUser }}</small>
               </div>
-              <button type="button" class="list__action" (click)="adjustQuantity(item)">
-                <span class="material-symbols-outlined">edit</span>
-                <span>Ajustar</span>
-              </button>
+              <div class="list__actions">
+                <button type="button" class="list__action" (click)="adjustQuantity(item)">
+                  <span class="material-symbols-outlined">edit</span>
+                  <span>Ajustar</span>
+                </button>
+                <button type="button" class="list__action list__action--delete" (click)="deleteItem(item)">
+                  <span class="material-symbols-outlined">delete</span>
+                  <span>Eliminar</span>
+                </button>
+              </div>
             </li>
           </ul>
         </div>
@@ -105,3 +111,4 @@
 </div>
 
 <app-modal #adjustModal (confirm)="onAdjustConfirm($event)" (cancel)="onAdjustCancel()"></app-modal>
+<app-modal #deleteModal (confirm)="onDeleteConfirm()" (cancel)="onDeleteCancel()"></app-modal>

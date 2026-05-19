@@ -57,8 +57,10 @@ export class InventoryComponent {
   };
 
   @ViewChild('adjustModal') adjustModal!: ModalComponent;
+  @ViewChild('deleteModal') deleteModal!: ModalComponent;
 
   private adjustingItem?: InventoryItem;
+  private deletingItem?: InventoryItem;
 
   constructor(
     private readonly fb: FormBuilder,
@@ -132,6 +134,27 @@ export class InventoryComponent {
 
   onAdjustCancel(): void {
     this.adjustingItem = undefined;
+  }
+
+  deleteItem(item: InventoryItem): void {
+    this.deletingItem = item;
+    this.deleteModal.open({
+      mode: 'confirm',
+      title: 'Eliminar producto',
+      message: `¿Eliminar "${item.name}" del inventario? Esta acción no se puede deshacer.`,
+      confirmText: 'Eliminar',
+      cancelText: 'Cancelar'
+    });
+  }
+
+  onDeleteConfirm(): void {
+    if (!this.deletingItem) return;
+    this.data.deleteInventoryItem(this.deletingItem.id);
+    this.deleteModal.close();
+  }
+
+  onDeleteCancel(): void {
+    this.deletingItem = undefined;
   }
 
   trackById(_: number, item: InventoryItem): string {

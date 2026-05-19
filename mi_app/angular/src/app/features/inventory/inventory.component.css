@@ -165,6 +165,11 @@ small {
   margin-top: 0.2rem;
 }
 
+.list__actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
 .list__action {
   display: inline-flex;
   align-items: center;
@@ -176,10 +181,20 @@ small {
   color: #0f766e;
   cursor: pointer;
   font-weight: 600;
+  transition: background 0.15s;
 }
 
 .list__action:hover {
   background: rgba(15, 118, 110, 0.18);
+}
+
+.list__action--delete {
+  background: rgba(211, 47, 47, 0.1);
+  color: #c62828;
+}
+
+.list__action--delete:hover {
+  background: rgba(211, 47, 47, 0.18);
 }
 
 .empty {
@@ -242,5 +257,9 @@ small {
 @media (max-width: 768px) {
   .list li {
     grid-template-columns: 1fr;
+  }
+
+  .list__actions {
+    flex-wrap: wrap;
   }
 }
