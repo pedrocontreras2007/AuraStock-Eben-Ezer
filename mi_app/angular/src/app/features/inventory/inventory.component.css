@@ -201,6 +201,44 @@ small {
   color: #64748b;
 }
 
+.category-group {
+  margin-bottom: 2rem;
+}
+
+.category-group:last-child {
+  margin-bottom: 0;
+}
+
+.category-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+  padding: 0.75rem 1.25rem;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  border-radius: 1.25rem;
+  color: #ffffff;
+}
+
+.category-header .material-symbols-outlined {
+  font-size: 1.5rem;
+}
+
+.category-header h4 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  flex: 1;
+}
+
+.category-count {
+  font-size: 0.85rem;
+  opacity: 0.75;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 0.25rem 0.75rem;
+  border-radius: 2rem;
+}
+
 @media (max-width: 768px) {
   .list li {
     grid-template-columns: 1fr;

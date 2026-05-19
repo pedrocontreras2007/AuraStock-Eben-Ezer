@@ -1,26 +1,24 @@
-import { UserRole } from './user-role.model';
-
-export type LossSource = 'inventory' | 'harvest';
+export type LossSource = 'inventory' | 'produccion';
 
 export interface Loss {
-  readonly id: string;
-  readonly productName: string;
-  readonly quantity: number;
-  readonly reason: string;
-  readonly date: Date;
-  readonly recordedBy: UserRole;
-  readonly recordedByPartnerName?: string;
-  readonly sourceType?: LossSource;
-  readonly sourceId?: string;
+  id: string;
+  productName: string;
+  quantity: number;
+  reason: string;
+  date: Date;
+  recordedBy?: string;
+  recordedByUser?: string | null;
+  sourceType?: LossSource | null;
+  sourceId?: string | null;
 }
 
 export interface LossInput {
-  readonly productName: string;
-  readonly quantity: number;
-  readonly reason: string;
-  readonly date: Date;
-  readonly recordedBy: UserRole;
-  readonly recordedByPartnerName?: string;
-  readonly sourceType?: LossSource;
-  readonly sourceId?: string;
+  productName: string;
+  quantity: number;
+  reason: string;
+  date?: Date;
+  recordedBy?: string;
+  recordedByUser?: string | null;
+  sourceType?: LossSource | null;
+  sourceId?: string | null;
 }

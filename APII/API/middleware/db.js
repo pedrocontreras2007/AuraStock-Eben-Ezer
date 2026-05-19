@@ -9,7 +9,7 @@ export default class DB {
     setDataConnection(data) {
         this.dataConnection = data;
         try {
-            this.pool = mysql.createPool({
+            const config = {
                 host: data.host,
                 user: data.user,
                 password: data.password,
@@ -18,8 +18,12 @@ export default class DB {
                 waitForConnections: true,
                 connectionLimit: 10,
                 queueLimit: 0,
-                multipleStatements: true // Útil si quieres ejecutar varios scripts a la vez
-            });
+                multipleStatements: false
+            };
+            if (process.env.DB_SSL === 'true' || parseInt(data.port) === 4000) {
+                config.ssl = { rejectUnauthorized: true };
+            }
+            this.pool = mysql.createPool(config);
             console.log(`✅ Configuración de Pool de conexión lista para: ${data.database}`);
         } catch (error) {
             console.error("❌ Error creando el pool de conexión:", error.message);

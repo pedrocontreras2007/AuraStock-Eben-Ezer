@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
-import { Harvest, HarvestInput } from '../models/harvest.model';
+import { Production, ProductionInput } from '../models/harvest.model';
 import { InventoryItem, InventoryItemInput } from '../models/inventory-item.model';
 import { Reminder, ReminderInput } from '../models/reminder.model';
 import { Loss, LossInput } from '../models/loss.model';
@@ -19,14 +19,14 @@ export class DataService {
   private http = inject(HttpClient);
   private auth = inject(AuthService);
   private readonly API_URL = environment.apiUrl;
-  private static readonly REMINDERS_STORAGE_KEY = 'floricoop.reminders';
+  private static readonly REMINDERS_STORAGE_KEY = 'aurastock.reminders';
 
-  private readonly harvestsSubject = new BehaviorSubject<Harvest[]>([]);
+  private readonly productionSubject = new BehaviorSubject<Production[]>([]);
   private readonly inventorySubject = new BehaviorSubject<InventoryItem[]>([]);
   private readonly lossesSubject = new BehaviorSubject<Loss[]>([]);
   private readonly remindersSubject = new BehaviorSubject<Reminder[]>(this.loadInitialReminders());
 
-  readonly harvests$ = this.harvestsSubject.asObservable();
+  readonly production$ = this.productionSubject.asObservable();
   readonly inventory$ = this.inventorySubject.asObservable();
   readonly reminders$ = this.remindersSubject.asObservable();
   readonly losses$ = this.lossesSubject.asObservable();
@@ -35,21 +35,24 @@ export class DataService {
     this.refreshAllData();
   }
 
-  get harvestsSnapshot(): Harvest[] { return this.harvestsSubject.value; }
+  get productionSnapshot(): Production[] { return this.productionSubject.value; }
   get inventorySnapshot(): InventoryItem[] { return this.inventorySubject.value; }
   get remindersSnapshot(): Reminder[] { return this.remindersSubject.value; }
   get lossesSnapshot(): Loss[] { return this.lossesSubject.value; }
 
+  private getAuthHeaders(): HttpHeaders {
+    const token = this.auth.token;
+    return token ? new HttpHeaders({ Authorization: `Bearer ${token}` }) : new HttpHeaders();
+  }
+
   private refreshAllData() {
-    this.fetchHarvests();
+    this.fetchProduction();
     this.fetchInventory();
     this.fetchLosses();
   }
 
-  // --- Funciones de carga (Privadas) ---
-
-  private fetchHarvests() {
-    this.http.get<ApiResponse<Harvest[]>>(`${this.API_URL}harvests`)
+  private fetchProduction() {
+    this.http.get<ApiResponse<Production[]>>(`${this.API_URL}produccion`)
       .subscribe({
         next: (res) => {
           const data = res.data.map(item => ({
@@ -57,23 +60,24 @@ export class DataService {
             date: new Date(item.date),
             recordedByUser: item.recordedByUser ?? null
           }));
-          this.harvestsSubject.next(data);
+          this.productionSubject.next(data);
         },
-        error: (err) => console.error('Error cargando cosechas:', err)
+        error: () => {}
       });
   }
 
   private fetchInventory() {
     this.http.get<ApiResponse<InventoryItem[]>>(`${this.API_URL}inventory`)
       .subscribe({
-        next: (res) => this.inventorySubject.next(
-          res.data.map(item => ({
-            ...item,
-            unit: 'unidades',
-            recordedByUser: item.recordedByUser ?? null
-          }))
-        ),
-        error: (err) => console.error('Error cargando inventario:', err)
+        next: (res) => {
+          this.inventorySubject.next(
+            res.data.map(item => ({
+              ...item,
+              recordedByUser: item.recordedByUser ?? null
+            }))
+          );
+        },
+        error: () => {}
       });
   }
 
@@ -88,91 +92,66 @@ export class DataService {
           } as Loss));
           this.lossesSubject.next(data);
         },
-        error: (err) => console.error('Error cargando pérdidas:', err)
+        error: () => {}
       });
   }
 
-  // --- Métodos Públicos con Refresco Automático ---
-
-  addHarvest(input: HarvestInput): void {
-    const recordedByUser = input.recordedByUser ?? this.auth.email ?? 'sistema@floricoop.cl';
-    const payload: HarvestInput = { ...input, recordedByUser };
-    
-    this.http.post(`${this.API_URL}harvests`, payload).subscribe({
-      next: () => {
-        // Al agregar cosecha, refrescamos historial E inventario (pues el backend ahora suma el stock)
-        this.fetchHarvests();
-        this.fetchInventory(); 
-      },
-      error: (e) => console.error('Error guardando cosecha', e)
+  addProduction(input: ProductionInput): void {
+    const recordedByUser = input.recordedByUser ?? this.auth.user?.email ?? 'sistema@aurastock.app';
+    const payload: ProductionInput = { ...input, recordedByUser };
+    this.http.post(`${this.API_URL}produccion`, payload, { headers: this.getAuthHeaders() }).subscribe({
+      next: () => { this.fetchProduction(); this.fetchInventory(); },
+      error: () => {}
     });
   }
 
-  deleteHarvest(id: string): void {
-    this.http.delete(`${this.API_URL}harvests/${id}`).subscribe({
-      next: () => {
-        this.fetchHarvests();
-        this.fetchInventory(); // Refrescar inventario por si se descontó al borrar
-      },
-      error: (e) => console.error('Error eliminando cosecha', e)
+  deleteProduction(id: string): void {
+    this.http.delete(`${this.API_URL}produccion/${id}`, { headers: this.getAuthHeaders() }).subscribe({
+      next: () => { this.fetchProduction(); this.fetchInventory(); },
+      error: () => {}
     });
   }
 
   addInventoryItem(input: InventoryItemInput): void {
-    const recordedByUser = input.recordedByUser ?? this.auth.email ?? 'sistema@floricoop.cl';
-    const payload: InventoryItemInput = { ...input, unit: 'unidades', recordedByUser };
-    this.http.post(`${this.API_URL}inventory`, payload).subscribe({
+    const recordedByUser = input.recordedByUser ?? this.auth.user?.email ?? 'sistema@aurastock.app';
+    const payload: InventoryItemInput = { ...input, unit: input.unit || 'unidades', recordedByUser };
+    this.http.post(`${this.API_URL}inventory`, payload, { headers: this.getAuthHeaders() }).subscribe({
       next: () => this.fetchInventory(),
-      error: (e) => console.error('Error guardando item', e)
+      error: () => {}
     });
   }
 
-  // NOTA: Esta función updateInventoryQuantity se mantiene para ediciones manuales,
-  // pero ya no la usaremos para restar mermas automáticamente desde el frontend.
-  updateInventoryQuantity(id: string, quantity: number, recordedBy: string, recordedByPartnerName?: string, recordedByUser?: string | null): void {
+  updateInventoryQuantity(id: string, quantity: number, recordedBy?: string, recordedByUser?: string | null): void {
     const currentItem = this.inventorySubject.value.find(i => i.id === id);
     if (!currentItem) return;
-
-    const recordedByUserValue = recordedByUser ?? this.auth.email ?? currentItem.recordedByUser ?? null;
+    const recordedByUserValue = recordedByUser ?? this.auth.user?.email ?? currentItem.recordedByUser ?? null;
     const updateData = {
       ...currentItem,
       quantity,
-      recordedBy,
-      recordedByPartnerName: recordedByPartnerName || '',
+      recordedBy: recordedBy || currentItem.recordedBy || '',
       recordedByUser: recordedByUserValue
     };
-
-    this.http.put(`${this.API_URL}inventory/${id}`, updateData).subscribe({
+    this.http.put(`${this.API_URL}inventory/${id}`, updateData, { headers: this.getAuthHeaders() }).subscribe({
       next: () => this.fetchInventory(),
-      error: (e) => console.error('Error actualizando stock manual', e)
+      error: () => {}
     });
   }
 
-  // Método para agregar Mermas
   addLoss(input: LossInput): Observable<unknown> {
-    return this.http.post(`${this.API_URL}losses`, input).pipe(
+    return this.http.post(`${this.API_URL}losses`, input, { headers: this.getAuthHeaders() }).pipe(
       tap({
-        next: () => {
-          // Al crear merma, el backend resta el stock.
-          // Aquí recargamos Mermas e Inventario para ver el cambio reflejado.
-          this.fetchLosses();
-          this.fetchInventory();
-        }
+        next: () => { this.fetchLosses(); this.fetchInventory(); }
       })
     );
   }
 
   removeLoss(id: string): void {
-    this.http.delete(`${this.API_URL}losses/${id}`).subscribe({
-      next: () => {
-        this.fetchLosses();
-        this.fetchInventory(); // Refrescar por si el backend devuelve el stock
-      },
-      error: (e) => console.error('Error eliminando pérdida', e)
+    this.http.delete(`${this.API_URL}losses/${id}`, { headers: this.getAuthHeaders() }).subscribe({
+      next: () => { this.fetchLosses(); this.fetchInventory(); },
+      error: () => {}
     });
   }
 
-  // --- Recordatorios (LocalStorage) ---
   addReminder(input: ReminderInput): void {
     const reminder: Reminder = {
       id: `local-${Date.now()}`,
@@ -188,15 +167,9 @@ export class DataService {
   updateReminder(id: string, changes: ReminderInput): void {
     const next = this.remindersSubject.value
       .map(reminder => reminder.id === id
-        ? {
-            ...reminder,
-            title: changes.title,
-            scheduledAt: new Date(changes.scheduledAt),
-            note: changes.note?.trim() || undefined
-          }
+        ? { ...reminder, title: changes.title, scheduledAt: new Date(changes.scheduledAt), note: changes.note?.trim() || undefined }
         : reminder)
       .sort((a, b) => a.scheduledAt.getTime() - b.scheduledAt.getTime());
-
     this.remindersSubject.next(next);
     this.persistReminders(next);
   }
@@ -205,26 +178,6 @@ export class DataService {
     const next = this.remindersSubject.value.filter(r => r.id !== id);
     this.remindersSubject.next(next);
     this.persistReminders(next);
-  }
-
-  updateHarvestQuantity(id: string, quantity: number): void {
-    const harvest = this.harvestsSubject.value.find(entry => entry.id === id);
-    if (!harvest) {
-      return;
-    }
-
-    const recordedByUser = this.auth.email ?? harvest.recordedByUser ?? null;
-    const payload = {
-      ...harvest,
-      quantity,
-      recordedByUser,
-      date: harvest.date.toISOString()
-    };
-
-    this.http.put(`${this.API_URL}harvests/${id}`, payload).subscribe({
-      next: () => this.fetchHarvests(),
-      error: (e) => console.error('Error actualizando cosecha', e)
-    });
   }
 
   private loadInitialReminders(): Reminder[] {

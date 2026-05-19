@@ -1,27 +1,19 @@
 <div class="harvest">
   <section class="harvest__form">
-    <h2>Registro de cosechas</h2>
-    <p>Ingresa nuevas entradas para mantener actualizado el historial de la cooperativa.</p>
+    <h2>Registro de producción</h2>
+    <p>Ingresa nuevos lotes de producción para mantener actualizado el inventario.</p>
 
     <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
-      <div class="field">
-        <label for="crop">Cultivo</label>
-        <input id="crop" type="text" formControlName="crop" placeholder="Ej. Lavanda">
-        <small *ngIf="form.controls.crop.invalid && (form.controls.crop.dirty || form.controls.crop.touched)">
-          Ingresa el nombre del cultivo
-        </small>
-      </div>
-
       <div class="field-row">
         <div class="field">
-          <label for="quantity">Cantidad (unidades)</label>
-          <input id="quantity" type="text" formControlName="quantity" placeholder="Ej. 120">
-          <small *ngIf="form.controls.quantity.invalid && (form.controls.quantity.dirty || form.controls.quantity.touched)">
-            Usa un número entero positivo de unidades
+          <label for="productName">Producto</label>
+          <input id="productName" type="text" formControlName="productName" placeholder="Ej. Masa de churros">
+          <small *ngIf="form.controls.productName.invalid && (form.controls.productName.dirty || form.controls.productName.touched)">
+            Ingresa el nombre del producto
           </small>
         </div>
         <div class="field">
-          <label for="category">Clasificación</label>
+          <label for="category">Tipo de lote</label>
           <select id="category" formControlName="category">
             <option *ngFor="let option of categories" [value]="option.value">{{ option.label }}</option>
           </select>
@@ -30,83 +22,70 @@
 
       <div class="field-row">
         <div class="field">
-          <label for="purchase-price">Precio de compra (CLP)</label>
-          <input id="purchase-price" type="text" formControlName="purchasePriceClp" placeholder="Ej. 15000">
-          <small *ngIf="form.controls.purchasePriceClp.invalid && (form.controls.purchasePriceClp.dirty || form.controls.purchasePriceClp.touched)">
-            Usa un monto válido (máx. 2 decimales)
+          <label for="quantity">Cantidad producida</label>
+          <input id="quantity" type="text" formControlName="quantity" placeholder="Ej. 50">
+          <small *ngIf="form.controls.quantity.invalid && (form.controls.quantity.dirty || form.controls.quantity.touched)">
+            Ingresa un número entero positivo
           </small>
         </div>
         <div class="field">
-          <label for="sale-price">Precio de venta (CLP)</label>
-          <input id="sale-price" type="text" formControlName="salePriceClp" placeholder="Ej. 23000">
-          <small *ngIf="form.controls.salePriceClp.invalid && (form.controls.salePriceClp.dirty || form.controls.salePriceClp.touched)">
-            Usa un monto válido (máx. 2 decimales)
-          </small>
+          <label for="notes">Notas (opcional)</label>
+          <input id="notes" type="text" formControlName="notes" placeholder="Observaciones">
         </div>
       </div>
 
-        <div class="field">
-          <label for="recordedBy">Registrado por</label>
-          <select id="recordedBy" formControlName="recordedBy">
-            <option *ngFor="let option of userRoleOptions" [value]="option.value">{{ option.label }}</option>
-          </select>
-        </div>
-
-        <div class="field" *ngIf="form.controls.recordedBy.value === 'socio'">
-          <label for="harvest-partner-name">Nombre del socio (opcional)</label>
-          <input id="harvest-partner-name" type="text" formControlName="recordedByPartnerName" placeholder="Ej. Coop Andina">
-        </div>
-
       <button type="submit" [disabled]="submitting" class="cta">
         <span class="material-symbols-outlined">add_circle</span>
-        <span>{{ submitting ? 'Guardando...' : 'Guardar cosecha' }}</span>
+        <span>{{ submitting ? 'Guardando...' : 'Guardar producción' }}</span>
       </button>
     </form>
   </section>
 
   <section class="harvest__history">
     <div class="history__header">
-      <h3>Historial reciente</h3>
+      <h3>Historial de producción</h3>
       <div class="history__filters">
-        <label for="harvest-filter">Filtrar por usuario</label>
-        <select id="harvest-filter" [formControl]="filterControl">
+        <label for="prod-filter">Filtrar por tipo</label>
+        <select id="prod-filter" [formControl]="filterControl">
           <option value="todos">Todos</option>
-          <option *ngFor="let option of userRoleOptions" [value]="option.value">{{ option.label }}</option>
+          <option value="lote_masa">Lote de masa</option>
+          <option value="lote_relleno">Lote de relleno</option>
+          <option value="lote_preparado">Lote preparado</option>
+          <option value="otro">Otro</option>
         </select>
       </div>
     </div>
 
     <ng-container *ngIf="vm$ | async as vm">
-      <article class="empty" *ngIf="!vm.harvests.length">
-        <span class="material-symbols-outlined">grass</span>
-        <h4>Aún no hay cosechas registradas</h4>
-        <p>Agrega tu primera entrada para comenzar a visualizar el desempeño de la cooperativa.</p>
+      <article class="empty" *ngIf="!vm.items.length">
+        <span class="material-symbols-outlined">bakery_dining</span>
+        <h4>Aún no hay producción registrada</h4>
+        <p>Agrega tu primer lote para comenzar a gestionar el inventario.</p>
       </article>
-      <ul *ngIf="vm.harvests.length" class="history__list">
-        <li *ngFor="let harvest of vm.harvests; trackBy: trackHarvest">
+      <ul *ngIf="vm.items.length" class="history__list">
+        <li *ngFor="let item of vm.items; trackBy: trackItem">
           <div class="history__icon">
-            <span class="material-symbols-outlined">spa</span>
+            <span class="material-symbols-outlined">inventory</span>
           </div>
           <div class="history__content">
-            <strong>{{ harvest.crop }}</strong>
-            <span>{{ harvest.quantity | quantityFormat }} unidades · {{ harvest.category }} categoría</span>
-            <small *ngIf="harvest.purchasePriceClp">Compra: {{ harvest.purchasePriceClp | currency:'CLP':'symbol-narrow':'1.0-0' }}</small>
-            <small *ngIf="harvest.salePriceClp">Venta: {{ harvest.salePriceClp | currency:'CLP':'symbol-narrow':'1.0-0' }}</small>
-            <small>Registrado por: {{ userRoleLabels[harvest.recordedBy] }}</small>
-            <small *ngIf="harvest.recordedByUser">Usuario: {{ harvest.recordedByUser }}</small>
-            <small *ngIf="harvest.recordedBy === 'socio' && harvest.recordedByPartnerName">Nombre del socio: {{ harvest.recordedByPartnerName }}</small>
+            <strong>{{ item.productName }}</strong>
+            <span>{{ item.quantity }} unidades · {{ item.category }}</span>
+            <small *ngIf="item.notes">{{ item.notes }}</small>
+            <small *ngIf="item.recordedByUser">Por: {{ item.recordedByUser }}</small>
           </div>
           <div class="history__meta">
-            <time [attr.datetime]="harvest.date.toISOString()">{{ harvest.date | date:'mediumDate' }}</time>
-            <span>{{ harvest.date | date:'shortTime' }}</span>
+            <time [attr.datetime]="item.date.toISOString()">{{ item.date | date:'mediumDate' }}</time>
+            <button class="btn-delete" type="button" (click)="deleteItem(item.id)" title="Eliminar">
+              <span class="material-symbols-outlined">delete</span>
+            </button>
           </div>
         </li>
       </ul>
 
       <section class="fifo" *ngIf="vm.fifoQueue.length">
         <div class="fifo__header">
-          <h3>Organizador FIFO de cosechas</h3>
-          <p>Lo más antiguo sale primero. Útil para planificar entregas y evitar rezagos.</p>
+          <h3>Cola FIFO de producción</h3>
+          <p>Los lotes más antiguos se consumen primero. Prioriza su uso para evitar mermas.</p>
         </div>
         <div class="fifo__table-wrapper">
           <table class="fifo__table">
@@ -114,25 +93,21 @@
               <tr>
                 <th>Prioridad</th>
                 <th>Fecha</th>
-                <th>Cultivo</th>
+                <th>Producto</th>
+                <th>Tipo</th>
                 <th>Cantidad</th>
-                <th>Compra</th>
-                <th>Venta</th>
-                <th>Usuario</th>
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let harvest of vm.fifoQueue; let idx = index; trackBy: trackHarvest">
+              <tr *ngFor="let item of vm.fifoQueue; let idx = index; trackBy: trackItem">
                 <td>
                   <span class="fifo__badge" [class.fifo__badge--primary]="idx === 0">{{ idx + 1 }}</span>
                   <span class="fifo__badge-label" *ngIf="idx === 0">Siguiente salida</span>
                 </td>
-                <td>{{ harvest.date | date:'mediumDate' }}</td>
-                <td>{{ harvest.crop }}</td>
-                <td>{{ harvest.quantity | quantityFormat }} unidades</td>
-                <td>{{ harvest.purchasePriceClp ? (harvest.purchasePriceClp | currency:'CLP':'symbol-narrow':'1.0-0') : '—' }}</td>
-                <td>{{ harvest.salePriceClp ? (harvest.salePriceClp | currency:'CLP':'symbol-narrow':'1.0-0') : '—' }}</td>
-                <td>{{ harvest.recordedByUser || '—' }}</td>
+                <td>{{ item.date | date:'mediumDate' }}</td>
+                <td>{{ item.productName }}</td>
+                <td>{{ item.category }}</td>
+                <td>{{ item.quantity }} uds.</td>
               </tr>
             </tbody>
           </table>

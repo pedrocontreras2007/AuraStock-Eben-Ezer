@@ -1,41 +1,68 @@
 <div class="login">
   <div class="login__card">
     <div class="login__logo">
-      <img src="assets/images/floricoop-logo.png" alt="Logotipo de Floricoop">
+      <img src="assets/images/aurastock-logo.svg" alt="Logotipo de AuraStøck">
     </div>
-    <h1>Cooperativa Floricoop</h1>
-    <p>Gestiona cosechas e inventario desde un solo panel.</p>
 
-    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
-      <label class="field">
-        <span>Correo electrónico</span>
-        <input type="email" formControlName="email" placeholder="tu@email.com" autocomplete="email">
-        <small *ngIf="emailControl.invalid && (emailControl.dirty || emailControl.touched)">
-          Ingresa un correo válido
-        </small>
-      </label>
+    @if (!selectedTenant) {
+      <!-- Step 1: Seleccionar empresa -->
+      <h1>AuraStøck</h1>
+      <p>Selecciona tu empresa para iniciar sesión</p>
 
-      <label class="field">
-        <span>Contraseña</span>
-        <div class="password">
-          <input [type]="showPassword ? 'text' : 'password'" formControlName="password" placeholder="******"
-            autocomplete="current-password">
-          <button type="button" (click)="togglePasswordVisibility()">
-            <span class="material-symbols-outlined">{{ showPassword ? 'visibility_off' : 'visibility' }}</span>
+      @if (loadingTenants) {
+        <p class="login__loading">Cargando empresas...</p>
+      }
+
+      @if (tenants.length === 0 && !loadingTenants) {
+        <p class="login__error">No hay empresas disponibles. Contacta al administrador.</p>
+      }
+
+      <div class="tenant-list">
+        @for (tenant of tenants; track tenant.id) {
+          <button type="button" class="tenant-btn" (click)="selectTenant(tenant)">
+            <span class="tenant-icon material-symbols-outlined">business</span>
+            <span class="tenant-name">{{ tenant.name }}</span>
           </button>
-        </div>
-        <small *ngIf="passwordControl.invalid && (passwordControl.dirty || passwordControl.touched)">
-          Ingresa tu contraseña
-        </small>
-      </label>
-
-      <button type="submit" [disabled]="submitting" class="login__btn">
-        <span class="material-symbols-outlined" *ngIf="!submitting">login</span>
-        <span *ngIf="submitting" class="spinner"></span>
-        <span>{{ submitting ? 'Ingresando...' : 'Ingresar' }}</span>
+        }
+      </div>
+    } @else {
+      <!-- Step 2: Login form -->
+      <button type="button" class="back-btn" (click)="back()">
+        <span class="material-symbols-outlined">arrow_back</span>
+        <span>{{ selectedTenant.name }}</span>
       </button>
-    </form>
 
-    <p class="login__error" *ngIf="errorMessage">{{ errorMessage }}</p>
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <label class="field">
+          <span>Correo electrónico</span>
+          <input type="email" formControlName="email" placeholder="tu@email.com" autocomplete="email">
+          <small *ngIf="emailControl.invalid && (emailControl.dirty || emailControl.touched)">
+            Ingresa un correo válido
+          </small>
+        </label>
+
+        <label class="field">
+          <span>Contraseña</span>
+          <div class="password">
+            <input [type]="showPassword ? 'text' : 'password'" formControlName="password" placeholder="******"
+              autocomplete="current-password">
+            <button type="button" (click)="togglePasswordVisibility()">
+              <span class="material-symbols-outlined">{{ showPassword ? 'visibility_off' : 'visibility' }}</span>
+            </button>
+          </div>
+          <small *ngIf="passwordControl.invalid && (passwordControl.dirty || passwordControl.touched)">
+            Ingresa tu contraseña
+          </small>
+        </label>
+
+        <button type="submit" [disabled]="submitting" class="login__btn">
+          <span class="material-symbols-outlined" *ngIf="!submitting">login</span>
+          <span *ngIf="submitting" class="spinner"></span>
+          <span>{{ submitting ? 'Ingresando...' : 'Ingresar' }}</span>
+        </button>
+      </form>
+
+      <p class="login__error" *ngIf="errorMessage">{{ errorMessage }}</p>
+    }
   </div>
 </div>

@@ -1,0 +1,9 @@
+{
+  "outputDirectory": "dist/cooperativa-dashboard/browser",
+  "buildCommand": "npx ng build --configuration=production",
+  "installCommand": "npm install",
+  "framework": "angular",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}

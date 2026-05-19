@@ -1,17 +1,40 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { BehaviorSubject, lastValueFrom } from 'rxjs';
+import { environment } from '../../../environments/environment';
+
+export interface TenantInfo {
+  id: string;
+  name: string;
+  slug: string;
+  logo_url?: string;
+}
+
+export interface UserSession {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+  tenantId: string;
+  tenantName: string;
+  tenantSlug: string;
+  branchId: string | null;
+  branchName: string | null;
+}
 
 interface AuthState {
   readonly isAuthenticated: boolean;
-  readonly email: string | null;
+  readonly user: UserSession | null;
+  readonly token: string | null;
 }
 
-const DEMO_EMAIL = 'innovacode1857@gmail.com';
-const DEMO_PASSWORD = 'innovacode';
-const STORAGE_KEY = 'cooperativa-auth-state';
+const STORAGE_KEY = 'aurastock-auth-state';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
+  private http = inject(HttpClient);
+  private readonly API_URL = environment.apiUrl;
+
   private readonly stateSubject = new BehaviorSubject<AuthState>(this.restoreSession());
 
   readonly state$ = this.stateSubject.asObservable();
@@ -20,59 +43,68 @@ export class AuthService {
     return this.stateSubject.value.isAuthenticated;
   }
 
-  get email(): string | null {
-    return this.stateSubject.value.email;
+  get user(): UserSession | null {
+    return this.stateSubject.value.user;
   }
 
-  async login(email: string, password: string): Promise<boolean> {
-    await new Promise(resolve => setTimeout(resolve, 750));
+  get token(): string | null {
+    return this.stateSubject.value.token;
+  }
 
-    const success = email.trim().toLowerCase() === DEMO_EMAIL && password === DEMO_PASSWORD;
-
-    if (success) {
-      this.updateState(true, DEMO_EMAIL);
-    } else {
-      this.updateState(false, null);
+  async login(email: string, password: string): Promise<{ success: boolean; error?: string }> {
+    try {
+      const response: any = await lastValueFrom(
+        this.http.post(`${this.API_URL}auth/login`, { email, password })
+      );
+      if (response.success && response.data) {
+        this.updateState(true, response.data.user, response.data.token);
+        return { success: true };
+      }
+      return { success: false, error: response.error || 'Error al iniciar sesión' };
+    } catch (err: any) {
+      const msg = err.error?.error || 'Error de conexión con el servidor';
+      return { success: false, error: msg };
     }
+  }
 
-    return success;
+  async getTenants(): Promise<TenantInfo[]> {
+    try {
+      const response: any = await lastValueFrom(
+        this.http.get(`${this.API_URL}auth/tenants`)
+      );
+      return response.data || [];
+    } catch {
+      return [];
+    }
   }
 
   logout(): void {
-    this.updateState(false, null);
+    this.updateState(false, null, null);
   }
 
-  private updateState(isAuthenticated: boolean, email: string | null): void {
-    const nextState: AuthState = { isAuthenticated, email };
+  private updateState(isAuthenticated: boolean, user: UserSession | null, token: string | null): void {
+    const nextState: AuthState = { isAuthenticated, user, token };
     this.stateSubject.next(nextState);
     this.persistSession(nextState);
   }
 
   private restoreSession(): AuthState {
     if (typeof window === 'undefined' || typeof window.localStorage === 'undefined') {
-      return { isAuthenticated: false, email: null };
+      return { isAuthenticated: false, user: null, token: null };
     }
-
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY);
-      if (!raw) {
-        return { isAuthenticated: false, email: null };
-      }
+      if (!raw) return { isAuthenticated: false, user: null, token: null };
       const parsed = JSON.parse(raw) as AuthState;
-      if (parsed && typeof parsed.isAuthenticated === 'boolean') {
-        return parsed;
-      }
-      return { isAuthenticated: false, email: null };
+      if (parsed && parsed.isAuthenticated && parsed.token) return parsed;
+      return { isAuthenticated: false, user: null, token: null };
     } catch {
-      return { isAuthenticated: false, email: null };
+      return { isAuthenticated: false, user: null, token: null };
     }
   }
 
   private persistSession(state: AuthState): void {
-    if (typeof window === 'undefined' || typeof window.localStorage === 'undefined') {
-      return;
-    }
-
+    if (typeof window === 'undefined' || typeof window.localStorage === 'undefined') return;
     if (state.isAuthenticated) {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     } else {

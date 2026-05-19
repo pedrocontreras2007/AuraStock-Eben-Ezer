@@ -1,4 +1,5 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://innovacode.cloud-app.cl/api/'
+  apiUrl: 'https://aurastock-api.onrender.com/api/',
+  appName: 'AuraStøck'
 };

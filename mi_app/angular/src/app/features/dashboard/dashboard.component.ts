@@ -4,29 +4,26 @@ import { RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { BehaviorSubject, combineLatest, map, Subject, takeUntil } from 'rxjs';
 import { BaseChartDirective } from 'ng2-charts';
-import { ChartConfiguration, ChartOptions, ChartType, ChartData } from 'chart.js';
+import { ChartOptions, ChartData } from 'chart.js';
 import { DataService } from '../../core/services/data.service';
-import { Harvest } from '../../core/models/harvest.model';
+import { Production } from '../../core/models/harvest.model';
 import { InventoryItem } from '../../core/models/inventory-item.model';
 import { Reminder } from '../../core/models/reminder.model';
 import { Loss } from '../../core/models/loss.model';
 import { QuantityFormatPipe } from '../../shared/pipes/quantity-format.pipe';
 
 interface DashboardSummary {
-  readonly totalHarvests: number;
-  readonly totalHarvestQuantity: number;
+  readonly totalProduction: number;
+  readonly totalProductionQuantity: number;
   readonly totalLossQuantityThisMonth: number;
   readonly inventoryCount: number;
   readonly healthyInventory: number;
   readonly criticalItems: InventoryItem[];
-  readonly recentHarvests: { crop: string; date: Date; quantity: number; category: string; purchasePriceClp?: number; salePriceClp?: number }[];
+  readonly zeroStockItems: InventoryItem[];
+  readonly recentProduction: { productName: string; date: Date; quantity: number; category: string }[];
   readonly stockByCategory: { category: string; total: number }[];
   readonly maxCategoryTotal: number;
   readonly topInventoryItems: InventoryItem[];
-  readonly economicStats: {
-    averageMargin: number;
-    entries: { id: string; crop: string; margin: number; salePriceClp: number; purchasePriceClp: number }[];
-  };
 }
 
 interface DashboardAction {
@@ -63,34 +60,10 @@ interface CalendarViewModel {
 export class DashboardComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
   private static readonly ACTIONS: DashboardAction[] = [
-    {
-      icon: 'compost',
-      title: 'Cosechas',
-      subtitle: 'Registra entradas y clasificaciones',
-      path: '/cosechas',
-      accent: 'primary'
-    },
-    {
-      icon: 'inventory_2',
-      title: 'Inventario',
-      subtitle: 'Gestiona insumos y existencias',
-      path: '/inventario',
-      accent: 'secondary'
-    },
-    {
-      icon: 'warning',
-      title: 'Alertas',
-      subtitle: 'Identifica productos críticos',
-      path: '/alertas',
-      accent: 'warning'
-    },
-    {
-      icon: 'insights',
-      title: 'Reportes',
-      subtitle: 'Analiza la salud del inventario',
-      path: '/reportes',
-      accent: 'info'
-    }
+    { icon: 'compost', title: 'Producción', subtitle: 'Registra lotes y entradas', path: '/produccion', accent: 'primary' },
+    { icon: 'inventory_2', title: 'Inventario', subtitle: 'Gestiona insumos y existencias', path: '/inventario', accent: 'secondary' },
+    { icon: 'warning', title: 'Alertas', subtitle: 'Identifica productos críticos', path: '/alertas', accent: 'warning' },
+    { icon: 'insights', title: 'Reportes', subtitle: 'Analiza el inventario', path: '/reportes', accent: 'info' }
   ];
 
   readonly actions = DashboardComponent.ACTIONS;
@@ -98,46 +71,28 @@ export class DashboardComponent implements OnInit, OnDestroy {
   readonly Math = Math;
   editingReminderId: string | null = null;
 
-  // Opciones del gráfico de barras (Cosechas vs Pérdidas)
+  readonly categoryLabels: Record<string, string> = {
+    insumo: 'Insumos', relleno: 'Rellenos', empaque: 'Empaques', utensilio: 'Utensilios', otro: 'Otros'
+  };
+
   public barChartOptions: ChartOptions<'bar'> = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
       legend: { display: true, position: 'top' },
-      tooltip: {
-        enabled: true,
-        intersect: false,
-        mode: 'index',
-        backgroundColor: 'rgba(15, 23, 42, 0.9)',
-        titleFont: { size: 13, family: 'Inter' },
-        bodyFont: { size: 12, family: 'Inter' },
-        padding: 10,
-        cornerRadius: 8
-      }
+      tooltip: { enabled: true, intersect: false, mode: 'index', backgroundColor: 'rgba(15, 23, 42, 0.9)', padding: 10, cornerRadius: 8 }
     },
     animation: { duration: 1500, easing: 'easeOutQuart' },
-    scales: {
-      y: { beginAtZero: true, grid: { color: 'rgba(226, 232, 240, 0.6)' } },
-      x: { grid: { display: false } }
-    }
+    scales: { y: { beginAtZero: true, grid: { color: 'rgba(226, 232, 240, 0.6)' } }, x: { grid: { display: false } } }
   };
   public barChartData: ChartData<'bar'> | undefined;
 
-  // Opciones del gráfico de anillo (Estado de Inventario)
   public doughnutChartOptions: ChartOptions<'doughnut'> = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
       legend: { display: true, position: 'right', labels: { usePointStyle: true, padding: 20 } },
-      tooltip: {
-        backgroundColor: 'rgba(15, 23, 42, 0.9)',
-        bodyFont: { size: 13, family: 'Inter' },
-        padding: 12,
-        cornerRadius: 8,
-        callbacks: {
-          label: (context) => ` ${context.label}: ${context.parsed} productos`
-        }
-      }
+      tooltip: { backgroundColor: 'rgba(15, 23, 42, 0.9)', padding: 12, cornerRadius: 8 }
     },
     cutout: '70%',
     animation: { animateScale: true, animateRotate: true, duration: 1000 }
@@ -158,8 +113,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
     map(([month, reminders]) => this.buildCalendar(month, reminders))
   );
 
-  readonly summary$ = combineLatest([this.data.harvests$, this.data.inventory$, this.data.losses$]).pipe(
-    map(([harvests, inventory, losses]: [Harvest[], InventoryItem[], Loss[]]) => {
+  readonly summary$ = combineLatest([this.data.production$, this.data.inventory$, this.data.losses$]).pipe(
+    map(([production, inventory, losses]: [Production[], InventoryItem[], Loss[]]) => {
       const currentMonthIndex = new Date().getMonth();
       const currentYear = new Date().getFullYear();
       const totalLossQuantityThisMonth = losses
@@ -167,18 +122,16 @@ export class DashboardComponent implements OnInit, OnDestroy {
         .reduce((sum, l) => sum + l.quantity, 0);
 
       const criticalItems = inventory
-        .filter((item: InventoryItem) => item.quantity <= 10)
+        .filter((item: InventoryItem) => item.quantity <= (item.criticalStock ?? 5))
         .sort((a: InventoryItem, b: InventoryItem) => a.quantity - b.quantity);
 
-      const recentHarvests = harvests
+      const zeroStockItems = inventory
+        .filter((item: InventoryItem) => item.quantity === 0);
+
+      const recentProduction = production
         .slice(0, 3)
-        .map((harvest: Harvest) => ({
-          crop: harvest.crop,
-          date: harvest.date,
-          quantity: harvest.quantity,
-          category: harvest.category,
-          purchasePriceClp: harvest.purchasePriceClp,
-          salePriceClp: harvest.salePriceClp
+        .map((p: Production) => ({
+          productName: p.productName, date: p.date, quantity: p.quantity, category: p.category
         }));
 
       const stockByCategoryMap = inventory.reduce((acc, item: InventoryItem) => {
@@ -197,45 +150,18 @@ export class DashboardComponent implements OnInit, OnDestroy {
         .sort((a: InventoryItem, b: InventoryItem) => b.quantity - a.quantity)
         .slice(0, 5);
 
-      const profitEntries = harvests
-        .map((harvest): { id: string; crop: string; margin: number; purchasePriceClp: number; salePriceClp: number } | null => {
-          if (!harvest.purchasePriceClp || !harvest.salePriceClp || harvest.purchasePriceClp <= 0) {
-            return null;
-          }
-          const gain = harvest.salePriceClp - harvest.purchasePriceClp;
-          const margin = (gain / harvest.purchasePriceClp) * 100;
-          return {
-            id: harvest.id,
-            crop: harvest.crop,
-            margin,
-            purchasePriceClp: harvest.purchasePriceClp,
-            salePriceClp: harvest.salePriceClp
-          };
-        })
-        .filter((entry): entry is NonNullable<typeof entry> => entry !== null)
-        .sort((a, b) => b.margin - a.margin);
-
-      const averageMargin = profitEntries.length
-        ? profitEntries.reduce((sum, entry) => sum + entry.margin, 0) / profitEntries.length
-        : 0;
-
-      const economicStats = {
-        averageMargin,
-        entries: profitEntries.slice(0, 5)
-      };
-
       return {
-        totalHarvests: harvests.length,
-        totalHarvestQuantity: harvests.reduce((sum: number, harvest: Harvest) => sum + harvest.quantity, 0),
+        totalProduction: production.length,
+        totalProductionQuantity: production.reduce((sum: number, p: Production) => sum + p.quantity, 0),
         totalLossQuantityThisMonth,
         inventoryCount: inventory.length,
-        healthyInventory: inventory.filter((item: InventoryItem) => item.quantity > 10).length,
+        healthyInventory: inventory.filter((item: InventoryItem) => item.quantity > (item.criticalStock ?? 5)).length,
         criticalItems,
-        recentHarvests,
+        zeroStockItems,
+        recentProduction,
         stockByCategory,
         maxCategoryTotal,
-        topInventoryItems,
-        economicStats
+        topInventoryItems
       } satisfies DashboardSummary;
     })
   );
@@ -243,81 +169,55 @@ export class DashboardComponent implements OnInit, OnDestroy {
   constructor(private readonly data: DataService, private readonly fb: FormBuilder) {}
 
   ngOnInit(): void {
-    combineLatest([this.data.harvests$, this.data.losses$, this.data.inventory$]).pipe(
+    combineLatest([this.data.production$, this.data.losses$, this.data.inventory$]).pipe(
       takeUntil(this.destroy$)
     ).subscribe(
-      ([harvests, losses, inventory]) => {
-        const last6Months = [];
-        const harvestsData = [];
-        const lossesData = [];
-        
+      ([production, losses, inventory]) => {
+        const last6Months: string[] = [];
+        const prodData: number[] = [];
+        const lossesData: number[] = [];
+
         for (let i = 5; i >= 0; i--) {
           const d = new Date();
           d.setMonth(d.getMonth() - i);
           const monthName = new Intl.DateTimeFormat('es-ES', { month: 'short' }).format(d);
           last6Months.push(this.capitalize(monthName));
-          
+
           const targetMonth = d.getMonth();
           const targetYear = d.getFullYear();
-          
-          const hSum = harvests
-            .filter(h => h.date.getMonth() === targetMonth && h.date.getFullYear() === targetYear)
-            .reduce((sum, h) => sum + h.quantity, 0);
-            
+
+          const pSum = production
+            .filter(p => p.date.getMonth() === targetMonth && p.date.getFullYear() === targetYear)
+            .reduce((sum, p) => sum + p.quantity, 0);
+
           const lSum = losses
             .filter(l => l.date.getMonth() === targetMonth && l.date.getFullYear() === targetYear)
             .reduce((sum, l) => sum + l.quantity, 0);
-            
-          harvestsData.push(hSum);
+
+          prodData.push(pSum);
           lossesData.push(lSum);
         }
 
         this.barChartData = {
           labels: last6Months,
           datasets: [
-            {
-              data: harvestsData,
-              label: 'Cosechas',
-              backgroundColor: 'rgba(46, 125, 50, 0.8)',
-              hoverBackgroundColor: 'rgba(46, 125, 50, 1)',
-              borderRadius: 6,
-              barPercentage: 0.6
-            },
-            {
-              data: lossesData,
-              label: 'Pérdidas',
-              backgroundColor: 'rgba(211, 47, 47, 0.8)',
-              hoverBackgroundColor: 'rgba(211, 47, 47, 1)',
-              borderRadius: 6,
-              barPercentage: 0.6
-            }
+            { data: prodData, label: 'Producción', backgroundColor: 'rgba(46, 125, 50, 0.8)', hoverBackgroundColor: 'rgba(46, 125, 50, 1)', borderRadius: 6, barPercentage: 0.6 },
+            { data: lossesData, label: 'Mermas', backgroundColor: 'rgba(211, 47, 47, 0.8)', hoverBackgroundColor: 'rgba(211, 47, 47, 1)', borderRadius: 6, barPercentage: 0.6 }
           ]
         };
 
-        const enStock = inventory.filter(i => i.quantity > 10).length;
-        const bajoStock = inventory.filter(i => i.quantity > 0 && i.quantity <= 10).length;
+        const enStock = inventory.filter(i => i.quantity > (i.criticalStock ?? 5)).length;
+        const bajoStock = inventory.filter(i => i.quantity > 0 && i.quantity <= (i.criticalStock ?? 5)).length;
         const agotado = inventory.filter(i => i.quantity === 0).length;
 
         this.doughnutChartData = {
-          labels: ['En stock (>10)', 'Bajo stock (1-10)', 'Agotado (0)'],
-          datasets: [
-            {
-              data: [enStock, bajoStock, agotado],
-              backgroundColor: [
-                'rgba(46, 125, 50, 0.85)',
-                'rgba(255, 152, 0, 0.85)',
-                'rgba(211, 47, 47, 0.85)'
-              ],
-              hoverBackgroundColor: [
-                'rgba(46, 125, 50, 1)',
-                'rgba(255, 152, 0, 1)',
-                'rgba(211, 47, 47, 1)'
-              ],
-              borderWidth: 3,
-              borderColor: '#ffffff',
-              hoverOffset: 6
-            }
-          ]
+          labels: ['En stock', 'Bajo stock', 'Agotado'],
+          datasets: [{
+            data: [enStock, bajoStock, agotado],
+            backgroundColor: ['rgba(46, 125, 50, 0.85)', 'rgba(255, 152, 0, 0.85)', 'rgba(211, 47, 47, 0.85)'],
+            hoverBackgroundColor: ['rgba(46, 125, 50, 1)', 'rgba(255, 152, 0, 1)', 'rgba(211, 47, 47, 1)'],
+            borderWidth: 3, borderColor: '#ffffff', hoverOffset: 6
+          }]
         };
       }
     );
@@ -328,116 +228,51 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  trackInventory(_: number, item: InventoryItem): string {
-    return item.id;
-  }
+  trackInventory(_: number, item: InventoryItem): string { return item.id; }
+  trackCategory(_: number, cat: { category: string; total: number }): string { return cat.category; }
 
-  trackCategory(_: number, category: { category: string; total: number }): string {
-    return category.category;
-  }
-
-  goToPreviousMonth(): void {
-    this.shiftMonth(-1);
-  }
-
-  goToNextMonth(): void {
-    this.shiftMonth(1);
-  }
+  goToPreviousMonth(): void { this.shiftMonth(-1); }
+  goToNextMonth(): void { this.shiftMonth(1); }
 
   selectDate(day: CalendarDay): void {
-    const iso = day.isoDate;
-    if (!day.inCurrentMonth) {
-      this.currentMonthSubject.next(this.startOfMonth(day.date));
-    }
-    this.reminderForm.controls.date.setValue(iso);
+    this.reminderForm.controls.date.setValue(day.isoDate);
+    if (!day.inCurrentMonth) this.currentMonthSubject.next(this.startOfMonth(day.date));
   }
 
   submitReminder(): void {
-    if (this.reminderForm.invalid) {
-      this.reminderForm.markAllAsTouched();
-      return;
-    }
-
+    if (this.reminderForm.invalid) { this.reminderForm.markAllAsTouched(); return; }
     const raw = this.reminderForm.getRawValue();
     const title = raw.title.trim();
-
-    if (!title) {
-      this.reminderForm.controls.title.setErrors({ required: true });
-      this.reminderForm.controls.title.markAsTouched();
-      return;
-    }
-
+    if (!title) { this.reminderForm.controls.title.setErrors({ required: true }); return; }
     const scheduledAt = this.parseReminderDate(raw.date, raw.time);
-
-    if (!scheduledAt) {
-      this.reminderForm.controls.date.setErrors({ invalid: true });
-      this.reminderForm.controls.date.markAsTouched();
-      return;
-    }
-
-    this.reminderForm.controls.title.setValue(title, { emitEvent: false });
-
-    const note = raw.note?.trim() || undefined;
+    if (!scheduledAt) { this.reminderForm.controls.date.setErrors({ invalid: true }); return; }
 
     if (this.editingReminderId) {
-      this.data.updateReminder(this.editingReminderId, {
-        title,
-        scheduledAt,
-        note
-      });
+      this.data.updateReminder(this.editingReminderId, { title, scheduledAt, note: raw.note?.trim() || undefined });
     } else {
-      this.data.addReminder({
-        title,
-        scheduledAt,
-        note
-      });
+      this.data.addReminder({ title, scheduledAt, note: raw.note?.trim() || undefined });
     }
-
-    const isoDate = this.toISODate(scheduledAt);
-    this.reminderForm.reset({
-      title: '',
-      date: isoDate,
-      time: raw.time || '',
-      note: ''
-    });
+    this.reminderForm.reset({ title: '', date: this.toISODate(scheduledAt), time: '', note: '' });
     this.editingReminderId = null;
   }
 
   startReminderEdit(reminder: Reminder): void {
     this.editingReminderId = reminder.id;
-    this.reminderForm.setValue({
-      title: reminder.title,
-      date: this.toISODate(reminder.scheduledAt),
-      time: this.formatTime(reminder.scheduledAt),
-      note: reminder.note ?? ''
-    });
+    this.reminderForm.setValue({ title: reminder.title, date: this.toISODate(reminder.scheduledAt), time: this.formatTime(reminder.scheduledAt), note: reminder.note ?? '' });
   }
 
   cancelReminderEdit(): void {
     this.editingReminderId = null;
-    const currentDate = this.reminderForm.controls.date.value || this.toISODate(new Date());
-    this.reminderForm.reset({
-      title: '',
-      date: currentDate,
-      time: '',
-      note: ''
-    });
+    this.reminderForm.reset({ title: '', date: this.reminderForm.controls.date.value || this.toISODate(new Date()), time: '', note: '' });
   }
 
   deleteReminder(reminder: Reminder): void {
     this.data.removeReminder(reminder.id);
-    if (this.editingReminderId === reminder.id) {
-      this.cancelReminderEdit();
-    }
+    if (this.editingReminderId === reminder.id) this.cancelReminderEdit();
   }
 
-  trackCalendarDay(_: number, day: CalendarDay): string {
-    return day.isoDate;
-  }
-
-  trackReminder(_: number, reminder: Reminder): string {
-    return reminder.id;
-  }
+  trackCalendarDay(_: number, day: CalendarDay): string { return day.isoDate; }
+  trackReminder(_: number, reminder: Reminder): string { return reminder.id; }
 
   private shiftMonth(step: number): void {
     const current = this.currentMonthSubject.value;
@@ -449,158 +284,62 @@ export class DashboardComponent implements OnInit, OnDestroy {
   private buildCalendar(month: Date, reminders: Reminder[]): CalendarViewModel {
     const today = this.startOfDay(new Date());
     const monthStart = this.startOfMonth(month);
-  const firstVisibleDay = this.startOfWeek(monthStart);
+    const firstVisibleDay = this.startOfWeek(monthStart);
     const remindersByDay = this.groupRemindersByDay(reminders);
-
     const weeks: CalendarDay[][] = [];
-  let cursor = new Date(firstVisibleDay);
+    let cursor = new Date(firstVisibleDay);
 
     for (let weekIndex = 0; weekIndex < 6; weekIndex += 1) {
       const week: CalendarDay[] = [];
-
       for (let dayIndex = 0; dayIndex < 7; dayIndex += 1) {
         const dayDate = new Date(cursor);
         const isoDate = this.toISODate(dayDate);
-        week.push({
-          date: dayDate,
-          isoDate,
-          label: dayDate.getDate(),
-          inCurrentMonth: dayDate.getMonth() === monthStart.getMonth(),
-          isToday: this.isSameDate(dayDate, today),
-          reminders: remindersByDay.get(isoDate) ?? []
-        });
+        week.push({ date: dayDate, isoDate, label: dayDate.getDate(), inCurrentMonth: dayDate.getMonth() === monthStart.getMonth(), isToday: this.isSameDate(dayDate, today), reminders: remindersByDay.get(isoDate) ?? [] });
         cursor = this.addDays(cursor, 1);
       }
-
       weeks.push(week);
     }
 
-    const monthLabel = this.capitalize(
-      new Intl.DateTimeFormat('es-ES', { month: 'long', year: 'numeric' }).format(monthStart)
-    );
-    const todayLabel = this.capitalize(
-      new Intl.DateTimeFormat('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(today)
-    );
-
-    const upcomingReminders = reminders
-      .filter(reminder => this.startOfDay(reminder.scheduledAt).getTime() >= today.getTime())
-      .sort((a, b) => a.scheduledAt.getTime() - b.scheduledAt.getTime())
-      .slice(0, 8);
-
     return {
-      monthLabel,
-      todayLabel,
+      monthLabel: this.capitalize(new Intl.DateTimeFormat('es-ES', { month: 'long', year: 'numeric' }).format(monthStart)),
+      todayLabel: this.capitalize(new Intl.DateTimeFormat('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(today)),
       weeks,
-      upcomingReminders
+      upcomingReminders: reminders.filter(r => this.startOfDay(r.scheduledAt).getTime() >= today.getTime()).sort((a, b) => a.scheduledAt.getTime() - b.scheduledAt.getTime()).slice(0, 8)
     };
   }
 
   private groupRemindersByDay(reminders: Reminder[]): Map<string, Reminder[]> {
     const map = new Map<string, Reminder[]>();
-
-    reminders.forEach(reminder => {
-      const key = this.toISODate(reminder.scheduledAt);
+    reminders.forEach(r => {
+      const key = this.toISODate(r.scheduledAt);
       const collection = map.get(key) ?? [];
-      collection.push(reminder);
+      collection.push(r);
       collection.sort((a, b) => a.scheduledAt.getTime() - b.scheduledAt.getTime());
       map.set(key, collection);
     });
-
     return map;
   }
 
   private toISODate(date: Date): string {
-    const year = date.getFullYear();
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const day = date.getDate().toString().padStart(2, '0');
-    return `${year}-${month}-${day}`;
+    return `${date.getFullYear()}-${(date.getMonth()+1).toString().padStart(2,'0')}-${date.getDate().toString().padStart(2,'0')}`;
   }
 
   private formatTime(date: Date): string {
-    const hours = date.getHours().toString().padStart(2, '0');
-    const minutes = date.getMinutes().toString().padStart(2, '0');
-    return `${hours}:${minutes}`;
+    return `${date.getHours().toString().padStart(2,'0')}:${date.getMinutes().toString().padStart(2,'0')}`;
   }
 
-  private startOfMonth(date: Date): Date {
-    const clone = new Date(date);
-    clone.setDate(1);
-    clone.setHours(0, 0, 0, 0);
-    return clone;
-  }
-
-  private startOfDay(date: Date): Date {
-    const clone = new Date(date);
-    clone.setHours(0, 0, 0, 0);
-    return clone;
-  }
-
-  private startOfWeek(date: Date): Date {
-    const clone = this.startOfDay(date);
-    const day = clone.getDay();
-    const offset = (day + 6) % 7;
-    clone.setDate(clone.getDate() - offset);
-    return clone;
-  }
-
-  private addDays(date: Date, amount: number): Date {
-    const clone = new Date(date);
-    clone.setDate(clone.getDate() + amount);
-    return clone;
-  }
-
-  private isSameDate(a: Date, b: Date): boolean {
-    return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
-  }
-
-  private capitalize(value: string): string {
-    if (!value) {
-      return value;
-    }
-    return value.charAt(0).toUpperCase() + value.slice(1);
-  }
-
+  private startOfMonth(date: Date): Date { const c = new Date(date); c.setDate(1); c.setHours(0,0,0,0); return c; }
+  private startOfDay(date: Date): Date { const c = new Date(date); c.setHours(0,0,0,0); return c; }
+  private startOfWeek(date: Date): Date { const c = this.startOfDay(date); const d = c.getDay(); c.setDate(c.getDate() - ((d+6)%7)); return c; }
+  private addDays(date: Date, amount: number): Date { const c = new Date(date); c.setDate(c.getDate()+amount); return c; }
+  private isSameDate(a: Date, b: Date): boolean { return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate(); }
+  private capitalize(value: string): string { if (!value) return value; return value.charAt(0).toUpperCase()+value.slice(1); }
   private parseReminderDate(date: string, time?: string | null): Date | null {
-    if (!date) {
-      return null;
-    }
-
-    const [yearStr, monthStr, dayStr] = date.split('-');
-    const year = Number(yearStr);
-    const month = Number(monthStr);
-    const day = Number(dayStr);
-
-    if ([year, month, day].some(value => Number.isNaN(value))) {
-      return null;
-    }
-
-    if (month < 1 || month > 12 || day < 1 || day > 31) {
-      return null;
-    }
-
-    let hour = 9;
-    let minute = 0;
-
-    if (time && time.includes(':')) {
-      const [hourStr, minuteStr] = time.split(':');
-      hour = Number(hourStr);
-      minute = Number(minuteStr);
-
-      if ([hour, minute].some(value => Number.isNaN(value))) {
-        return null;
-      }
-    }
-
-    const scheduled = new Date(year, month - 1, day, hour, minute, 0, 0);
-
-    if (
-      scheduled.getFullYear() !== year ||
-      scheduled.getMonth() !== month - 1 ||
-      scheduled.getDate() !== day
-    ) {
-      return null;
-    }
-
-    return scheduled;
+    if (!date) return null;
+    const [y,m,d] = date.split('-').map(Number);
+    if ([y,m,d].some(isNaN) || m<1||m>12||d<1||d>31) return null;
+    let h=9, min=0;
+    if (time?.includes(':')) { const [hs, ms] = time.split(':').map(Number); h=hs; min=ms; }
+    return new Date(y, m-1, d, h, min, 0, 0);
   }
 }

@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: aurastock-api
+    runtime: node
+    repo: https://github.com/pedrocontreras2007/angular_floricoop.git
+    plan: free
+    region: oregon
+    buildCommand: npm install
+    startCommand: node index.js
+    healthCheckPath: /
+    envVars:
+      - key: APP_HOST
+        value: 0.0.0.0
+      - key: APP_PORT
+        value: 10000
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        value: 4000
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_DATABASE
+        value: aurastock
+      - key: DB_SSL
+        value: "true"
+      - key: ALLOWED_ORIGINS
+        value: https://aurastock.vercel.app,http://localhost:4200
+      - key: JWT_SECRET
+        generateValue: true

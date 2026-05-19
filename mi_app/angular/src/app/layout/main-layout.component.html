@@ -1,11 +1,22 @@
 <div class="layout">
   <header class="layout__header">
     <div class="brand">
-      <img class="brand__logo" src="assets/images/floricoop-logo.png" alt="Logotipo de Floricoop">
+      <img class="brand__logo" src="assets/images/aurastock-logo.svg" alt="Logotipo de AuraStøck">
       <div>
-  <h1>Cooperativa Floricoop</h1>
-        <p>Panel de administración de cosechas e inventario</p>
+        <h1>AuraStøck</h1>
+        <p>Panel de administración de inventario y producción</p>
       </div>
+    </div>
+    <div class="layout__user" *ngIf="userState$ | async as userState">
+      @if (userState.user) {
+        <span class="user-info">
+          <span class="material-symbols-outlined">person</span>
+          <span>{{ userState.user.name }}</span>
+          @if (userState.user.branchName) {
+            <span class="branch-badge">{{ userState.user.branchName }}</span>
+          }
+        </span>
+      }
     </div>
     <div class="layout__today" aria-label="Fecha actual">
       <span class="material-symbols-outlined" aria-hidden="true">calendar_month</span>

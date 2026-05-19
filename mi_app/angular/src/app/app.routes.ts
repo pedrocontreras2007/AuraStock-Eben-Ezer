@@ -19,8 +19,13 @@ export const appRoutes: Routes = [
         loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent)
       },
       {
-        path: 'cosechas',
+        path: 'produccion',
         loadComponent: () => import('./features/harvest/harvest.component').then(m => m.HarvestComponent)
+      },
+      {
+        path: 'cosechas',
+        redirectTo: 'produccion',
+        pathMatch: 'full'
       },
       {
         path: 'inventario',

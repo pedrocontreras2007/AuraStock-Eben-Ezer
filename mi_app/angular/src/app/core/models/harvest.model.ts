@@ -1,18 +1,16 @@
-import { UserRole } from './user-role.model';
+export type ProductionCategory = 'lote_masa' | 'lote_relleno' | 'lote_preparado' | 'otro';
 
-export type HarvestCategory = 'primera' | 'segunda' | 'tercera';
-
-export interface Harvest {
+export interface Production {
   id: string;
-  crop: string;
-  category: HarvestCategory;
+  productName: string;
+  category: ProductionCategory;
   quantity: number;
   date: Date;
-  recordedBy: UserRole;
-  recordedByPartnerName?: string;
+  tenantId?: string;
+  branchId?: string;
+  recordedBy?: string;
   recordedByUser?: string | null;
-  purchasePriceClp?: number;
-  salePriceClp?: number;
+  notes?: string;
 }
 
-export type HarvestInput = Omit<Harvest, 'id'>;
+export type ProductionInput = Omit<Production, 'id' | 'tenantId' | 'branchId'>;

@@ -5,20 +5,21 @@
 
     <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
       <div class="field">
-        <label for="name">Nombre del ítem</label>
-        <input id="name" type="text" formControlName="name" placeholder="Ej. Fertilizante orgánico A">
+        <label for="name">Nombre del producto</label>
+        <input id="name" type="text" formControlName="name" placeholder="Ej. Harina">
         <small *ngIf="form.controls.name.invalid && (form.controls.name.dirty || form.controls.name.touched)">
-          Ingresa el nombre del ítem
+          Ingresa el nombre del producto
         </small>
       </div>
 
       <div class="field-row">
         <div class="field">
-          <label for="quantity">Cantidad (unidades)</label>
-          <input id="quantity" type="number" min="0" step="1" formControlName="quantity" placeholder="Ej. 18">
-          <small *ngIf="form.controls.quantity.invalid && (form.controls.quantity.dirty || form.controls.quantity.touched)">
-            Ingresa un número entero válido.
-          </small>
+          <label for="quantity">Cantidad</label>
+          <input id="quantity" type="number" min="0" step="1" formControlName="quantity" placeholder="Ej. 50">
+        </div>
+        <div class="field">
+          <label for="unit">Unidad</label>
+          <input id="unit" type="text" formControlName="unit" placeholder="kg, litros, unidades">
         </div>
       </div>
 
@@ -29,16 +30,15 @@
         </select>
       </div>
 
-      <div class="field">
-        <label for="recorded-by">Registrado por</label>
-        <select id="recorded-by" formControlName="recordedBy">
-          <option *ngFor="let option of userRoleOptions" [value]="option.value">{{ option.label }}</option>
-        </select>
-      </div>
-
-      <div class="field" *ngIf="form.controls.recordedBy.value === 'socio'">
-        <label for="recorded-by-partner">Nombre del socio (opcional)</label>
-        <input id="recorded-by-partner" type="text" formControlName="recordedByPartnerName" placeholder="Ej. Coop Andina">
+      <div class="field-row">
+        <div class="field">
+          <label for="minStock">Stock mínimo (alerta)</label>
+          <input id="minStock" type="number" min="0" formControlName="minStock" placeholder="Ej. 10">
+        </div>
+        <div class="field">
+          <label for="criticalStock">Stock crítico</label>
+          <input id="criticalStock" type="number" min="0" formControlName="criticalStock" placeholder="Ej. 5">
+        </div>
       </div>
 
       <button type="submit" class="cta">
@@ -52,40 +52,54 @@
     <div class="list__header">
       <h3>Existencias</h3>
       <div class="list__filters">
-        <label for="inventory-filter">Filtrar por usuario</label>
+        <label for="inventory-filter">Filtrar por categoría</label>
         <select id="inventory-filter" [formControl]="filterControl">
-          <option value="todos">Todos</option>
-          <option *ngFor="let option of userRoleOptions" [value]="option.value">{{ option.label }}</option>
+          <option value="todos">Todas</option>
+          <option *ngFor="let option of categories" [value]="option.value">{{ option.label }}</option>
         </select>
       </div>
     </div>
 
     <ng-container *ngIf="vm$ | async as vm">
-      <article class="empty" *ngIf="!vm.items.length">
+      <article class="empty" *ngIf="!vm.totalItems">
         <span class="material-symbols-outlined">inventory_2</span>
-        <h4>No hay insumos registrados</h4>
+        <h4>No hay productos registrados</h4>
         <p>Agrega los materiales para mantener el control de stock y reposiciones.</p>
       </article>
 
-      <ul *ngIf="vm.items.length" class="list">
-        <li *ngFor="let item of vm.items; trackBy: trackById" [class.critical]="item.quantity <= 10">
-          <div class="list__icon">
-            <span class="material-symbols-outlined">inventory</span>
+      <ng-container *ngIf="vm.totalItems">
+        <div *ngFor="let group of vm.groups" class="category-group">
+          <div class="category-header">
+            <span class="material-symbols-outlined">
+              {{ group.category === 'insumo' ? 'bakery_dining' : group.category === 'relleno' ? 'bid_fill' : group.category === 'empaque' ? 'inventory' : group.category === 'utensilio' ? 'handyman' : 'cleaning_services' }}
+            </span>
+            <h4>{{ group.label }}</h4>
+            <span class="category-count">{{ group.items.length }} producto{{ group.items.length !== 1 ? 's' : '' }}</span>
           </div>
-          <div class="list__content">
-            <strong>{{ item.name }}</strong>
-            <span>{{ item.quantity | quantityFormat }} unidades</span>
-            <small>Categoría: {{ item.category }}.</small>
-            <small>Registrado por: {{ userRoleLabels[item.recordedBy] }}</small>
-            <small *ngIf="item.recordedByUser">Usuario: {{ item.recordedByUser }}</small>
-            <small *ngIf="item.recordedBy === 'socio' && item.recordedByPartnerName">Nombre del socio: {{ item.recordedByPartnerName }}</small>
-          </div>
-          <button type="button" class="list__action" (click)="adjustQuantity(item)">
-            <span class="material-symbols-outlined">edit</span>
-            <span>Ajustar</span>
-          </button>
-        </li>
-      </ul>
+
+          <ul class="list">
+            <li *ngFor="let item of group.items; trackBy: trackById"
+                [class.critical]="isLowStock(item)"
+                [class.out-of-stock]="isOutOfStock(item)">
+              <div class="list__icon">
+                <span class="material-symbols-outlined">
+                  {{ isOutOfStock(item) ? 'cancel' : isLowStock(item) ? 'warning' : 'check_circle' }}
+                </span>
+              </div>
+              <div class="list__content">
+                <strong>{{ item.name }}</strong>
+                <span>{{ item.quantity }} {{ item.unit }}</span>
+                <small *ngIf="item.minStock">Mín: {{ item.minStock }} {{ item.unit }}</small>
+                <small *ngIf="item.recordedByUser">Registrado por: {{ item.recordedByUser }}</small>
+              </div>
+              <button type="button" class="list__action" (click)="adjustQuantity(item)">
+                <span class="material-symbols-outlined">edit</span>
+                <span>Ajustar</span>
+              </button>
+            </li>
+          </ul>
+        </div>
+      </ng-container>
     </ng-container>
   </section>
 </div>

@@ -1,7 +1,5 @@
-import { UserRole } from './user-role.model';
-
-export type InventoryCategory = 'planta' | 'fertilizante' | 'pesticida' | 'herramienta';
-export type InventoryUnit = 'unidades';
+export type InventoryCategory = 'insumo' | 'relleno' | 'empaque' | 'utensilio' | 'otro';
+export type InventoryUnit = string;
 
 export interface InventoryItem {
   id: string;
@@ -9,9 +7,12 @@ export interface InventoryItem {
   quantity: number;
   unit: InventoryUnit;
   category: InventoryCategory;
-  recordedBy: UserRole;
-  recordedByPartnerName?: string;
+  minStock: number;
+  criticalStock: number;
+  tenantId?: string;
+  branchId?: string;
+  recordedBy?: string;
   recordedByUser?: string | null;
 }
 
-export type InventoryItemInput = Omit<InventoryItem, 'id'>;
+export type InventoryItemInput = Omit<InventoryItem, 'id' | 'tenantId' | 'branchId'>;

@@ -2,34 +2,33 @@ import dotenv from "dotenv";
 import express from "express";
 import http from "http";
 import cors from "cors";
-import fs from "node:fs";
-import path from "node:path";
-//Importamos el middleware de la base de datos
 import DB from "./middleware/db.js";
+import { extractUser } from "./middleware/userContext.js";
+import { filterByTenant } from "./middleware/tenant.js";
 
+import authRouterFactory from "./routes/auth.routes.js";
 import harvestRouterFactory from "./routes/harvest.routes.js";
 import inventoryRouterFactory from "./routes/inventory.routes.js";
 import lossesRouterFactory from "./routes/losses.routes.js";
+import tenantRouterFactory from "./routes/tenants.routes.js";
 
-//import tenantRouterFactory from "./routes/tenants.routes.js";
-
-dotenv.config(); // Carga las variables de entorno desde el archivo .env
+dotenv.config();
 
 const initServer = () => {
-    const app = express(); // Crea una instancia de la aplicación Express
-    const server = http.createServer(app); // Crea un servidor HTTP con la aplicación Express
-    const db = new DB(); // Crea una instancia de la clase DB para manejar la conexión a la base de datos
+    const app = express();
+    const server = http.createServer(app);
+    const db = new DB();
     const dConnection = {
         host: process.env.DB_HOST,
         user: process.env.DB_USER,
         password: process.env.DB_PASSWORD,
         database: process.env.DB_DATABASE,
         port: process.env.DB_PORT,
-    }
-    db.setDataConnection(dConnection); // Configura la conexión a la base de datos usando las variables de entorno
+    };
+    db.setDataConnection(dConnection);
 
-    app.use(express.json()); // Middleware para parsear el cuerpo de las solicitudes como JSON
-    app.use(express.urlencoded({ extended: true })); // Middleware para parsear cuerpos de solicitudes con URL-encoded
+    app.use(express.json());
+    app.use(express.urlencoded({ extended: true }));
 
     const allowedOriginsRaw = (process.env.ALLOWED_ORIGINS || 'http://localhost:4200')
         .split(',')
@@ -37,10 +36,8 @@ const initServer = () => {
         .filter(Boolean);
 
     const allowAll = allowedOriginsRaw.includes('*');
-    const allowedOrigins = allowAll ? [] : allowedOriginsRaw; // vacío si es wildcard para simplificar la verificación
+    const allowedOrigins = allowAll ? [] : allowedOriginsRaw;
 
-    // Si es wildcard, usar cors estándar con origin: true (refleja cualquier origin)
-    // Si no, usar la función de whitelist
     app.use(cors(allowAll ? {
         origin: true,
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
@@ -48,7 +45,6 @@ const initServer = () => {
         credentials: true
     } : {
         origin: (origin, callback) => {
-            // origin puede ser undefined (curl, same-origin)
             if (!origin || allowedOrigins.includes(origin)) {
                 return callback(null, true);
             }
@@ -57,10 +53,19 @@ const initServer = () => {
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
         credentials: true
-    })); // Habilita CORS para permitir solicitudes desde otros dominios
+    }));
 
+    // Middleware global: extrae usuario JWT si existe
+    app.use(extractUser);
+    app.use(filterByTenant);
+
+    // Rutas públicas (auth)
+    const authRouter = authRouterFactory(db);
+    app.use("/api/auth", authRouter);
+
+    // Rutas protegidas
     const harvestRouter = harvestRouterFactory(db);
-    app.use("/api/harvests", harvestRouter);
+    app.use("/api/produccion", harvestRouter);
 
     const inventoryRouter = inventoryRouterFactory(db);
     app.use("/api/inventory", inventoryRouter);
@@ -68,20 +73,24 @@ const initServer = () => {
     const lossesRouter = lossesRouterFactory(db);
     app.use("/api/losses", lossesRouter);
 
-    const port = Number(process.env.APP_PORT) || 3000;
-    const host = process.env.APP_HOST || "0.0.0.0"; // Escucha en todas las interfaces para entornos remotos
+    const tenantRouter = tenantRouterFactory(db);
+    app.use("/api/tenants", tenantRouter);
 
-    app.set("trust proxy", true); // Permite que express detecte IP real si hay reverse proxy
+    const port = Number(process.env.APP_PORT) || 3000;
+    const host = process.env.APP_HOST || "0.0.0.0";
+
+    app.set("trust proxy", true);
 
     app.get("/", (req, res) => {
-        res.status(200).json({ message: "API REST funcionando correctamente" });
+        res.status(200).json({ message: "AuraStøck API funcionando" });
     });
 
     server.listen(port, host, () => {
-        console.log(`Servidor funcionando en ${host}:${port}`);
+        console.log(`AuraStøck API en ${host}:${port}`);
         const envRaw = process.env.ALLOWED_ORIGINS || '(no definido)';
         const corsMsg = allowAll ? '*' : (allowedOrigins.join(', ') || envRaw);
         console.log(`CORS permitido para: ${corsMsg}`);
     });
-}
-initServer(); // Inicia el servidor
+};
+
+initServer();

@@ -6,99 +6,86 @@ const mapInventoryRow = (row) => ({
     quantity: Number(row.quantity) || 0,
     unit: row.unit,
     category: row.category,
+    minStock: row.min_stock ?? 10,
+    criticalStock: row.critical_stock ?? 5,
+    tenantId: row.tenant_id,
+    branchId: row.branch_id,
     recordedBy: row.recorded_by,
-    recordedByPartnerName: row.recorded_by_partner_name || undefined,
     recordedByUser: row.recorded_by_user ?? null
 });
 
 export default (db) => ({
-    async findAll() {
-        const query = 'SELECT * FROM inventory_items ORDER BY name ASC';
+    async findAll(tenantId, branchId) {
+        let query = 'SELECT * FROM inventory_items WHERE tenant_id = ?';
+        const params = [tenantId];
+        if (branchId) {
+            query += ' AND branch_id = ?';
+            params.push(branchId);
+        }
+        query += ' ORDER BY name ASC';
+
         try {
-            const results = await db.mysqlquery(query);
+            const results = await db.mysqlquery(query, params);
             if (!results.success) throw new Error(results.error);
             const payload = results.data.map(mapInventoryRow);
-            return {
-                success: true,
-                status: payload.length > 0 ? 200 : 404,
-                data: payload,
-                error: null
-            };
+            return { success: true, status: 200, data: payload, error: null };
         } catch (error) {
-            return { success: false, status: 500, data: [], error: error.message };
+            return { success: false, status: 500, data: [], error: 'Error al cargar inventario' };
         }
     },
 
-    async create(data) {
+    async create(data, tenantId, branchId) {
         const id = uuidv4();
-        const query = `
-            INSERT INTO inventory_items 
-            (id, name, quantity, unit, category, recorded_by, recorded_by_partner_name, recorded_by_user) 
-            VALUES 
-            (?, ?, ?, ?, ?, ?, ?, ?);
-        `;
+        const query = `INSERT INTO inventory_items 
+            (id, tenant_id, branch_id, name, quantity, unit, category, min_stock, critical_stock, recorded_by, recorded_by_user) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
         const values = [
-            id,
-            data.name,
-            data.quantity,
-            data.unit,
-            data.category,
-            data.recordedBy || null,
-            data.recordedByPartnerName || null,
-            data.recordedByUser || null
+            id, tenantId, branchId || null,
+            data.name, data.quantity, data.unit || 'unidades',
+            data.category, data.minStock ?? 10, data.criticalStock ?? 5,
+            data.recordedBy || null, data.recordedByUser || null
         ];
         try {
             const results = await db.mysqlquery(query, values);
             if (!results.success) throw new Error(results.error);
             const success = results.data.affectedRows > 0;
-            return { success, status: success ? 201 : 500, data: { id }, error: success ? null : 'No se pudo crear el item' };
+            return { success, status: success ? 201 : 500, data: { id }, error: success ? null : 'No se pudo crear' };
         } catch (error) {
-            return { success: false, status: 500, data: {}, error: error.message };
+            return { success: false, status: 500, data: {}, error: 'Error al crear item' };
         }
     },
 
-    // Función para editar stock (ej. cuando se gasta fertilizante o se rompe una herramienta)
-    async update(id, data) {
-        const query = `
-            UPDATE inventory_items SET 
-            name = ?,
-            quantity = ?,
-            unit = ?,
-            category = ?,
-            recorded_by = ?,
-            recorded_by_partner_name = ?,
-            recorded_by_user = ?
-            WHERE id = ?;
-        `;
+    async update(id, data, tenantId) {
+        const query = `UPDATE inventory_items SET 
+            name = ?, quantity = ?, unit = ?, category = ?,
+            min_stock = ?, critical_stock = ?,
+            recorded_by = ?, recorded_by_user = ?
+            WHERE id = ? AND tenant_id = ?`;
         const values = [
-            data.name,
-            data.quantity,
-            data.unit,
-            data.category,
-            data.recordedBy || null,
-            data.recordedByPartnerName || null,
-            data.recordedByUser || null,
-            id
+            data.name, data.quantity, data.unit || 'unidades', data.category,
+            data.minStock ?? 10, data.criticalStock ?? 5,
+            data.recordedBy || null, data.recordedByUser || null,
+            id, tenantId
         ];
         try {
             const results = await db.mysqlquery(query, values);
             if (!results.success) throw new Error(results.error);
             const success = results.data.affectedRows > 0;
-            return { success, status: success ? 200 : 404, data: success ? { id } : {}, error: success ? null : 'Item not found' };
+            return { success, status: success ? 200 : 404, error: success ? null : 'Item no encontrado' };
         } catch (error) {
-            return { success: false, status: 500, error: error.message };
+            return { success: false, status: 500, error: 'Error al actualizar item' };
         }
     },
 
-    async delete(id) {
-        const query = 'DELETE FROM inventory_items WHERE id = ?;';
+    async delete(id, tenantId) {
+        const query = 'DELETE FROM inventory_items WHERE id = ? AND tenant_id = ?';
         try {
-            const results = await db.mysqlquery(query, [id]);
+            const results = await db.mysqlquery(query, [id, tenantId]);
             if (!results.success) throw new Error(results.error);
             const success = results.data.affectedRows > 0;
-            return { success, status: success ? 200 : 404, data: success ? { id } : {}, error: success ? null : 'Item not found' };
+            return { success, status: success ? 200 : 404, error: success ? null : 'Item no encontrado' };
         } catch (error) {
-            return { success: false, status: 500, error: error.message };
+            return { success: false, status: 500, error: 'Error al eliminar item' };
         }
     }
-}); 
+});

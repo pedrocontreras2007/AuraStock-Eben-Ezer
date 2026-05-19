@@ -13,9 +13,12 @@
         <div>
           <h3>Resumen de alertas</h3>
           <p>
-            {{ vm.criticalCount > 0
-              ? vm.criticalCount + ' productos requieren reposición'
-              : 'No hay productos en nivel crítico' }}
+            @if (vm.criticalCount > 0) {
+              {{ vm.criticalCount }} productos requieren reposición
+              ({{ vm.outOfStockCount }} agotados, {{ vm.lowStockCount }} con stock bajo)
+            } @else {
+              No hay productos en nivel crítico
+            }
           </p>
         </div>
       </article>
@@ -25,23 +28,25 @@
       <h3>Detalle por producto</h3>
       <article class="empty" *ngIf="!vm.ordered.length">
         <span class="material-symbols-outlined">inventory_2</span>
-        <p>Aún no hay productos registrados en inventario o cosechas.</p>
+        <p>Todos los productos están en niveles saludables.</p>
       </article>
 
       <ul *ngIf="vm.ordered.length">
-        <li *ngFor="let item of vm.ordered; trackBy: trackById" [class.critical]="item.critical">
-          <div class="item__icon" [class.critical]="item.critical">
+        <li *ngFor="let item of vm.ordered; trackBy: trackById"
+            [class.critical]="item.status === 'critical' || item.status === 'out_of_stock'">
+          <div class="item__icon" [class.critical]="item.status !== 'ok'">
             <span class="material-symbols-outlined">{{ item.icon }}</span>
           </div>
           <div class="item__body">
             <strong>{{ item.name }}</strong>
-            <span>{{ item.quantity | quantityFormat }} unidades disponibles</span>
-            <small>{{ item.category }}</small>
-            <small>Fuente: {{ item.source === 'inventario' ? 'Inventario' : 'Cosecha' }}</small>
-            <small *ngIf="item.date">Registrado: {{ item.date | date:'mediumDate' }}</small>
+            <span>{{ item.quantity }} {{ item.unit }} disponibles</span>
+            <small>Categoría: {{ item.category }}</small>
+            <small>Stock mínimo: {{ item.minStock }} · Crítico: {{ item.criticalStock }}</small>
           </div>
-          <span class="badge" [class.badge__critical]="item.critical" [class.badge__safe]="!item.critical">
-            {{ item.critical ? 'Crítico' : 'Saludable' }}
+          <span class="badge"
+                [class.badge__critical]="item.status === 'critical' || item.status === 'out_of_stock'"
+                [class.badge__low]="item.status === 'low'">
+            {{ statusLabels[item.status] }}
           </span>
         </li>
       </ul>

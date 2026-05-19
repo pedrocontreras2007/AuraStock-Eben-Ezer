@@ -19,7 +19,7 @@ interface NavLink {
 export class MainLayoutComponent {
   readonly navLinks: NavLink[] = [
     { label: 'Panel', icon: 'dashboard', path: '/dashboard' },
-    { label: 'Cosechas', icon: 'compost', path: '/cosechas' },
+    { label: 'Producción', icon: 'compost', path: '/produccion' },
     { label: 'Inventario', icon: 'inventory_2', path: '/inventario' },
     { label: 'Alertas', icon: 'warning', path: '/alertas' },
     { label: 'Mermas', icon: 'delete_sweep', path: '/mermas' },
@@ -44,9 +44,7 @@ export class MainLayoutComponent {
   }
 
   private capitalize(value: string): string {
-    if (!value) {
-      return value;
-    }
+    if (!value) return value;
     return value.charAt(0).toUpperCase() + value.slice(1);
   }
 }

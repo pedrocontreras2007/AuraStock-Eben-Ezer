@@ -1,15 +1,10 @@
 import Joi from 'joi';
 
-/**
- * Factory de middleware de validación de schema Joi.
- * Uso: router.post('/', validateBody(mySchema), handler)
- * @param {Joi.ObjectSchema} schema - Schema Joi para validar req.body
- */
 export const validateBody = (schema) => (req, res, next) => {
     const { error, value } = schema.validate(req.body, {
-        abortEarly: false,   // Devuelve TODOS los errores, no solo el primero
-        stripUnknown: true,  // Descarta campos no declarados en el schema (seguridad extra)
-        convert: true        // Permite coerciones seguras (ej. string "5" a número 5)
+        abortEarly: false,
+        stripUnknown: true,
+        convert: true
     });
 
     if (error) {
@@ -22,64 +17,38 @@ export const validateBody = (schema) => (req, res, next) => {
         });
     }
 
-    req.body = value; // Reemplaza con los datos ya saneados por Joi
+    req.body = value;
     next();
 };
 
-// ─── Schemas de Validación ───────────────────────────────────────────────────
-
-export const harvestSchema = Joi.object({
-    crop: Joi.string().trim().min(1).max(150).required().messages({
-        'string.empty': 'El nombre del cultivo no puede estar vacío.',
-        'any.required': 'El campo "crop" es obligatorio.'
-    }),
-    category: Joi.string().trim().min(1).max(100).required().messages({
-        'any.required': 'El campo "category" es obligatorio.'
-    }),
-    quantity: Joi.number().positive().required().messages({
-        'number.base': '"quantity" debe ser un número.',
-        'number.positive': '"quantity" debe ser un valor positivo.',
-        'any.required': 'El campo "quantity" es obligatorio.'
-    }),
+export const produccionSchema = Joi.object({
+    productName: Joi.string().trim().min(1).max(150).required(),
+    category: Joi.string().valid('lote_masa', 'lote_relleno', 'lote_preparado', 'otro').required(),
+    quantity: Joi.number().positive().required(),
     date: Joi.string().isoDate().optional().allow(null, ''),
     recordedBy: Joi.string().trim().max(150).optional().allow(null, ''),
-    recordedByPartnerName: Joi.string().trim().max(150).optional().allow(null, ''),
     recordedByUser: Joi.string().trim().email().optional().allow(null, ''),
-    purchasePriceClp: Joi.number().min(0).optional().allow(null),
-    salePriceClp: Joi.number().min(0).optional().allow(null)
+    notes: Joi.string().trim().max(500).optional().allow(null, '')
 });
 
 export const inventorySchema = Joi.object({
-    name: Joi.string().trim().min(1).max(150).required().messages({
-        'any.required': 'El campo "name" es obligatorio.'
-    }),
-    category: Joi.string().trim().min(1).max(100).required(),
-    quantity: Joi.number().min(0).required().messages({
-        'number.base': '"quantity" debe ser un número.',
-        'any.required': 'El campo "quantity" es obligatorio.'
-    }),
+    name: Joi.string().trim().min(1).max(150).required(),
+    category: Joi.string().valid('insumo', 'relleno', 'empaque', 'utensilio', 'otro').required(),
+    quantity: Joi.number().min(0).required(),
     unit: Joi.string().trim().optional().allow(null, ''),
+    minStock: Joi.number().min(0).optional().default(10),
+    criticalStock: Joi.number().min(0).optional().default(5),
     recordedBy: Joi.string().trim().max(150).optional().allow(null, ''),
-    recordedByPartnerName: Joi.string().trim().max(150).optional().allow(null, ''),
     recordedByUser: Joi.string().trim().email().optional().allow(null, '')
 });
 
 export const lossSchema = Joi.object({
-    productName: Joi.string().trim().min(1).max(150).required().messages({
-        'any.required': 'El campo "productName" es obligatorio.'
-    }),
-    quantity: Joi.number().positive().required().messages({
-        'number.base': '"quantity" debe ser un número.',
-        'number.positive': '"quantity" debe ser positivo.',
-        'any.required': 'El campo "quantity" es obligatorio.'
-    }),
-    reason: Joi.string().trim().min(1).max(500).required().messages({
-        'any.required': 'El campo "reason" es obligatorio.'
-    }),
+    productName: Joi.string().trim().min(1).max(150).required(),
+    quantity: Joi.number().positive().required(),
+    reason: Joi.string().trim().min(1).max(500).required(),
     date: Joi.string().isoDate().optional().allow(null, ''),
     recordedBy: Joi.string().trim().max(150).optional().allow(null, ''),
-    recordedByPartnerName: Joi.string().trim().max(150).optional().allow(null, ''),
     recordedByUser: Joi.string().trim().email().optional().allow(null, ''),
-    sourceType: Joi.string().valid('inventory', 'harvest').optional().allow(null, ''),
+    sourceType: Joi.string().valid('inventory', 'produccion').optional().allow(null, ''),
     sourceId: Joi.string().trim().optional().allow(null, '')
 });
