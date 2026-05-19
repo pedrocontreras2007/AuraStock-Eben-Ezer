@@ -5,6 +5,7 @@ import { DataService } from '../../core/services/data.service';
 import { InventoryItem } from '../../core/models/inventory-item.model';
 import { Production } from '../../core/models/harvest.model';
 import { QuantityFormatPipe } from '../../shared/pipes/quantity-format.pipe';
+import { ExportService } from '../../shared/services/export.service';
 
 @Component({
   selector: 'app-reports',
@@ -72,5 +73,12 @@ export class ReportsComponent {
     })
   );
 
-  constructor(private readonly data: DataService) {}
+  constructor(
+    private readonly data: DataService,
+    private readonly exportSvc: ExportService
+  ) {}
+
+  downloadExcel(): void {
+    this.exportSvc.downloadExcel(this.data.inventorySnapshot, 'Reporte_Eben_Ezer');
+  }
 }

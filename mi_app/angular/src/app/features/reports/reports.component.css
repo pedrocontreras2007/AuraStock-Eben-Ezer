@@ -4,16 +4,46 @@
   gap: 2.5rem;
 }
 
+.reports header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
 .reports header h2 {
   margin: 0;
   font-size: 1.9rem;
   font-weight: 700;
   color: #0f172a;
+  width: 100%;
 }
 
 .reports header p {
   margin: 0.5rem 0 0;
   color: #64748b;
+  flex: 1;
+}
+
+.reports__excel-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 1rem;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: var(--ee-primary);
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.reports__excel-btn:hover {
+  background: var(--ee-cream-dark);
+  border-color: var(--ee-accent);
 }
 
 .metrics {

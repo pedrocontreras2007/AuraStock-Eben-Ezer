@@ -58,13 +58,28 @@
           <option *ngFor="let option of categories" [value]="option.value">{{ option.label }}</option>
         </select>
       </div>
+      <div class="list__search">
+        <span class="material-symbols-outlined">search</span>
+        <input type="text" [formControl]="searchControl" placeholder="Buscar por nombre...">
+      </div>
+    </div>
+
+    <div class="list__toolbar">
+      <button type="button" class="toolbar-btn" (click)="sendWhatsApp()">
+        <span class="material-symbols-outlined">chat</span>
+        <span>Pedido WhatsApp</span>
+      </button>
+      <button type="button" class="toolbar-btn" (click)="downloadExcel()">
+        <span class="material-symbols-outlined">download</span>
+        <span>Descargar Excel</span>
+      </button>
     </div>
 
     <ng-container *ngIf="vm$ | async as vm">
       <article class="empty" *ngIf="!vm.totalItems">
         <span class="material-symbols-outlined">inventory_2</span>
-        <h4>No hay productos registrados</h4>
-        <p>Agrega los materiales para mantener el control de stock y reposiciones.</p>
+        <h4>{{ vm.query ? 'Sin resultados' : 'No hay productos registrados' }}</h4>
+        <p>{{ vm.query ? 'Intenta con otro término de búsqueda.' : 'Agrega los materiales para mantener el control de stock y reposiciones.' }}</p>
       </article>
 
       <ng-container *ngIf="vm.totalItems">
@@ -112,3 +127,4 @@
 
 <app-modal #adjustModal (confirm)="onAdjustConfirm($event)" (cancel)="onAdjustCancel()"></app-modal>
 <app-modal #deleteModal (confirm)="onDeleteConfirm()" (cancel)="onDeleteCancel()"></app-modal>
+<app-toast #toast></app-toast>

@@ -25,11 +25,13 @@ export class DataService {
   private readonly inventorySubject = new BehaviorSubject<InventoryItem[]>([]);
   private readonly lossesSubject = new BehaviorSubject<Loss[]>([]);
   private readonly remindersSubject = new BehaviorSubject<Reminder[]>(this.loadInitialReminders());
+  private readonly loadingSubject = new BehaviorSubject<boolean>(false);
 
   readonly production$ = this.productionSubject.asObservable();
   readonly inventory$ = this.inventorySubject.asObservable();
   readonly reminders$ = this.remindersSubject.asObservable();
   readonly losses$ = this.lossesSubject.asObservable();
+  readonly loading$ = this.loadingSubject.asObservable();
 
   constructor() {
     this.auth.state$.subscribe(state => {

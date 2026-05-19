@@ -7,31 +7,37 @@ import { InventoryCategory, InventoryItem } from '../../core/models/inventory-it
 import { QuantityFormatPipe } from '../../shared/pipes/quantity-format.pipe';
 import { AuthService } from '../../core/services/auth.service';
 import { ModalComponent } from '../../shared/components/modal.component';
+import { ToastComponent } from '../../shared/components/toast.component';
+import { ExportService } from '../../shared/services/export.service';
 
 @Component({
   selector: 'app-inventory',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, QuantityFormatPipe, ModalComponent],
+  imports: [CommonModule, ReactiveFormsModule, QuantityFormatPipe, ModalComponent, ToastComponent],
   templateUrl: './inventory.component.html',
   styleUrls: ['./inventory.component.css']
 })
 export class InventoryComponent {
   readonly filterControl = this.fb.nonNullable.control<string>('todos');
+  readonly searchControl = this.fb.nonNullable.control<string>('');
 
   readonly vm$ = combineLatest([
     this.data.inventory$,
-    this.filterControl.valueChanges.pipe(startWith(this.filterControl.value))
+    this.filterControl.valueChanges.pipe(startWith(this.filterControl.value)),
+    this.searchControl.valueChanges.pipe(startWith(this.searchControl.value))
   ]).pipe(
-    map(([items, filter]) => {
-      const filtered = filter === 'todos' ? items : items.filter(item => item.category === filter);
+    map(([items, filter, query]) => {
+      const q = query.toLowerCase().trim();
+      const catFiltered = filter === 'todos' ? items : items.filter(item => item.category === filter);
+      const searched = !q ? catFiltered : catFiltered.filter(item => item.name.toLowerCase().includes(q));
       const groups = this.categories
         .map(cat => ({
           category: cat.value,
           label: cat.label,
-          items: filtered.filter(item => item.category === cat.value)
+          items: searched.filter(item => item.category === cat.value)
         }))
         .filter(g => g.items.length > 0);
-      return { groups, selectedFilter: filter, totalItems: filtered.length };
+      return { groups, selectedFilter: filter, totalItems: searched.length, query: q };
     })
   );
 
@@ -58,6 +64,7 @@ export class InventoryComponent {
 
   @ViewChild('adjustModal') adjustModal!: ModalComponent;
   @ViewChild('deleteModal') deleteModal!: ModalComponent;
+  @ViewChild('toast') toast!: ToastComponent;
 
   private adjustingItem?: InventoryItem;
   private deletingItem?: InventoryItem;
@@ -65,7 +72,8 @@ export class InventoryComponent {
   constructor(
     private readonly fb: FormBuilder,
     private readonly data: DataService,
-    private readonly auth: AuthService
+    private readonly auth: AuthService,
+    private readonly exportSvc: ExportService
   ) {}
 
   submit(): void {
@@ -155,6 +163,24 @@ export class InventoryComponent {
 
   onDeleteCancel(): void {
     this.deletingItem = undefined;
+  }
+
+  sendWhatsApp(): void {
+    const items = this.data.inventorySnapshot;
+    const supplies = items.filter(i => i.category === 'insumo' || i.category === 'relleno');
+    const text = this.exportSvc.generateWhatsAppText([
+      { title: 'AGOTADOS', icon: '❌', items: supplies.filter(i => i.quantity === 0) },
+      { title: 'STOCK CRÍTICO', icon: '⚠️', items: supplies.filter(i => i.quantity > 0 && i.quantity <= (i.criticalStock ?? 5)) },
+      { title: 'STOCK BAJO', icon: '🔄', items: supplies.filter(i => i.quantity <= (i.minStock ?? 10) && i.quantity > (i.criticalStock ?? 5)) }
+    ]);
+    navigator.clipboard.writeText(text).then(() => {
+      this.toast.show({ message: 'Texto copiado — pégalo en WhatsApp', type: 'success' });
+    });
+  }
+
+  downloadExcel(): void {
+    this.exportSvc.downloadExcel(this.data.inventorySnapshot, 'Inventario_Eben_Ezer');
+    this.toast.show({ message: 'Archivo Excel descargado', type: 'success' });
   }
 
   trackById(_: number, item: InventoryItem): string {
