@@ -115,11 +115,6 @@
   color: #b71c1c;
 }
 
-.badge__safe {
-  background: rgba(46, 125, 50, 0.16);
-  color: #1b5e20;
-}
-
 .empty {
   padding: 2rem;
   border-radius: 1.5rem;

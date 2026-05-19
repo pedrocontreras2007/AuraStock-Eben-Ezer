@@ -42,12 +42,6 @@
   box-shadow: 0 18px 38px rgba(15, 23, 42, 0.12);
 }
 
-.summary-grid {
-  display: grid;
-  gap: 1.5rem;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-}
-
 .summary-card {
   display: grid;
   grid-template-columns: auto 1fr;
@@ -551,57 +545,6 @@
 }
 
 .top-stock span {
-  font-weight: 600;
-  color: #0f172a;
-}
-
-.profit-chart {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.profit-chart__info {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-}
-
-.profit-chart__info strong {
-  font-size: 1rem;
-  color: #0f172a;
-}
-
-.profit-chart__info small {
-  color: #64748b;
-}
-
-.profit-chart__bar {
-  position: relative;
-  height: 12px;
-  background: #e2e8f0;
-  border-radius: 999px;
-  overflow: hidden;
-  margin-top: 0.4rem;
-}
-
-.profit-chart__fill {
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, rgba(46, 125, 50, 0.85), rgba(21, 101, 192, 0.85));
-  border-radius: 999px;
-}
-
-.profit-chart__value {
-  position: absolute;
-  top: -24px;
-  right: 0;
-  font-size: 0.85rem;
   font-weight: 600;
   color: #0f172a;
 }

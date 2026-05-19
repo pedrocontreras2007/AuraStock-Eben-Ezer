@@ -39,13 +39,6 @@ interface LossProductSelection {
   styleUrls: ['./losses.component.css']
 })
 export class LossesComponent {
-  private static readonly CHART_PALETTE = ['#d32f2f', '#c62828', '#b71c1c', '#e53935', '#ef5350', '#e57373', '#ef9a9a'];
-  readonly chartRadius = 64;
-  readonly chartCircumference = 2 * Math.PI * this.chartRadius;
-  readonly chartSize = this.chartRadius * 2 + 24;
-  readonly chartCenter = this.chartSize / 2;
-  readonly chartViewBox = `0 0 ${this.chartSize} ${this.chartSize}`;
-
   readonly filterControl = this.fb.nonNullable.control<string>('todos');
 
   readonly vm$ = combineLatest([
