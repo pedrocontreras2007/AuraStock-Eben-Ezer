@@ -187,6 +187,25 @@ small {
   margin-bottom: 0.75rem;
 }
 
+.empty__steps {
+  text-align: left;
+  max-width: 320px;
+  margin: 1rem auto;
+  padding: 0 0 0 1.25rem;
+}
+
+.empty__steps li {
+  margin-bottom: 0.35rem;
+  color: #475569;
+  line-height: 1.5;
+}
+
+.empty__tip {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  font-style: italic;
+}
+
 .empty p {
   margin-top: 0.5rem;
   color: #64748b;

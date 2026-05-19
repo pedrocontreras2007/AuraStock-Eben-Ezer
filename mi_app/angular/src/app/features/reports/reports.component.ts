@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { combineLatest, map } from 'rxjs';
+import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { combineLatest, map, startWith } from 'rxjs';
 import { DataService } from '../../core/services/data.service';
 import { InventoryItem } from '../../core/models/inventory-item.model';
 import { Production } from '../../core/models/harvest.model';
@@ -10,21 +11,40 @@ import { ExportService } from '../../shared/services/export.service';
 @Component({
   selector: 'app-reports',
   standalone: true,
-  imports: [CommonModule, QuantityFormatPipe],
+  imports: [CommonModule, ReactiveFormsModule, QuantityFormatPipe],
   templateUrl: './reports.component.html',
   styleUrls: ['./reports.component.css']
 })
 export class ReportsComponent {
   readonly Math = Math;
+  readonly dateFrom = this.fb.nonNullable.control<string>('');
+  readonly dateTo = this.fb.nonNullable.control<string>('');
 
   readonly categoryLabels: Record<string, string> = {
     insumo: 'Insumos', relleno: 'Rellenos', empaque: 'Empaques', utensilio: 'Utensilios', otro: 'Otros'
   };
 
-  readonly vm$ = combineLatest([this.data.inventory$, this.data.production$]).pipe(
-    map(([items, production]: [InventoryItem[], Production[]]) => {
+  readonly vm$ = combineLatest([
+    this.data.inventory$,
+    this.data.production$,
+    this.dateFrom.valueChanges.pipe(startWith('')),
+    this.dateTo.valueChanges.pipe(startWith(''))
+  ]).pipe(
+    map(([items, production, from, to]: [InventoryItem[], Production[], string, string]) => {
+      const fromDate = from ? new Date(from) : null;
+      const toDate = to ? new Date(to) : null;
+      const filteredProduction = production.filter(p => {
+        if (fromDate && p.date < fromDate) return false;
+        if (toDate) {
+          const endOfDay = new Date(toDate);
+          endOfDay.setHours(23, 59, 59, 999);
+          if (p.date > endOfDay) return false;
+        }
+        return true;
+      });
+
       const inventoryStock = items.reduce((sum, item) => sum + item.quantity, 0);
-      const productionStock = production.reduce((sum, p) => sum + p.quantity, 0);
+      const productionStock = filteredProduction.reduce((sum, p) => sum + p.quantity, 0);
       const totalStock = inventoryStock + productionStock;
       const healthyCount = items.filter(item => item.quantity > (item.criticalStock ?? 5)).length;
       const criticalItems = items.filter(item => item.quantity <= (item.criticalStock ?? 5)).sort((a, b) => a.quantity - b.quantity);
@@ -39,19 +59,19 @@ export class ReportsComponent {
       const lowestStock = items.length ? items.reduce((a, b) => (a.quantity <= b.quantity ? a : b)) : null;
       const averageStock = items.length ? totalStock / items.length : 0;
 
-      const prodByCategory = production.reduce<Record<string, number>>((acc, p) => {
+      const prodByCategory = filteredProduction.reduce<Record<string, number>>((acc, p) => {
         acc[p.category] = (acc[p.category] ?? 0) + p.quantity;
         return acc;
       }, {});
 
-      const recentProduction = [...production]
+      const recentProduction = [...filteredProduction]
         .sort((a, b) => b.date.getTime() - a.date.getTime())
         .slice(0, 5);
 
       const productionSummary = {
-        total: production.length,
+        total: filteredProduction.length,
         totalQuantity: productionStock,
-        averageQuantity: production.length ? productionStock / production.length : 0,
+        averageQuantity: filteredProduction.length ? productionStock / filteredProduction.length : 0,
         byCategory: prodByCategory,
         recentProduction
       };
@@ -74,6 +94,7 @@ export class ReportsComponent {
   );
 
   constructor(
+    private readonly fb: FormBuilder,
     private readonly data: DataService,
     private readonly exportSvc: ExportService
   ) {}

@@ -2,10 +2,22 @@
   <header>
     <h2>Reportes</h2>
     <p>Visualiza la salud del inventario con métricas clave.</p>
-    <button type="button" class="reports__excel-btn" (click)="downloadExcel()">
-      <span class="material-symbols-outlined">download</span>
-      <span>Descargar Excel</span>
-    </button>
+    <div class="reports__actions">
+      <div class="reports__filters">
+        <label>
+          Desde
+          <input type="date" [formControl]="dateFrom">
+        </label>
+        <label>
+          Hasta
+          <input type="date" [formControl]="dateTo">
+        </label>
+      </div>
+      <button type="button" class="reports__excel-btn" (click)="downloadExcel()">
+        <span class="material-symbols-outlined">download</span>
+        <span>Descargar Excel</span>
+      </button>
+    </div>
   </header>
 
   <ng-container *ngIf="vm$ | async as vm">

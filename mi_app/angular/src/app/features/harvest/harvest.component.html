@@ -60,7 +60,14 @@
       <article class="empty" *ngIf="!vm.items.length">
         <span class="material-symbols-outlined">bakery_dining</span>
         <h4>Aún no hay producción registrada</h4>
-        <p>Agrega tu primer lote para comenzar a gestionar el inventario.</p>
+        <p>Comienza registrando tu primer lote con el formulario de arriba.</p>
+        <ol class="empty__steps">
+          <li>Escribe el nombre del producto (ej. Masa de churros)</li>
+          <li>Selecciona el tipo de lote (masa, relleno, preparado)</li>
+          <li>Indica la cantidad producida</li>
+          <li>Haz clic en "Guardar producción"</li>
+        </ol>
+        <p class="empty__tip">Los lotes se ordenan automáticamente por fecha (FIFO) para priorizar los más antiguos.</p>
       </article>
       <ul *ngIf="vm.items.length" class="history__list">
         <li *ngFor="let item of vm.items; trackBy: trackItem">

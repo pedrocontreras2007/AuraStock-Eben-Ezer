@@ -26,6 +26,41 @@
   flex: 1;
 }
 
+.reports__actions {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.reports__filters {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.reports__filters label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.reports__filters input {
+  padding: 0.45rem 0.65rem;
+  border: 1px solid #d0d0d0;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  outline: none;
+}
+
+.reports__filters input:focus {
+  border-color: var(--ee-accent);
+}
+
 .reports__excel-btn {
   display: inline-flex;
   align-items: center;

@@ -180,19 +180,19 @@ npm install xlsx
 ## CRONOGRAMA (13 días)
 
 ```
-Día 1  → 1.1 Modal reutilizable + reemplazar prompt/confirm
-Día 2  → 1.2 Botón eliminar inventario
-Día 3  → 1.3 + 1.4 Limpiar código muerto
-Día 4  → 2.1 Nav mobile + bottom bar
-Día 5  → 2.2 Calendario + 2.4 Ajustes responsive
-Día 6  → 2.3 Branding Eben Ezer
-Día 7  → 3.1 Skeleton loading
-Día 8  → 3.2 Toast notificaciones
-Día 9  → 3.5 WhatsApp TXT ← ALTA
-Día 10 → 3.6 Excel XLSX ← ALTA
-Día 11 → 3.3 Búsqueda + 3.4 Modal edición
-Día 12 → 4.1 Producción + 4.2 Componentes compartidos
-Día 13 → 4.3 Exportar reportes + 4.4 Filtros fecha
+Día 1  → 1.1 Modal reutilizable + reemplazar prompt/confirm ✅
+Día 2  → 1.2 Botón eliminar inventario ✅
+Día 3  → 1.3 + 1.4 Limpiar código muerto ✅
+Día 4  → 2.1 Nav mobile + bottom bar ✅
+Día 5  → 2.2 Calendario + 2.4 Ajustes responsive ✅
+Día 6  → 2.3 Branding Eben Ezer ✅
+Día 7  → 3.1 Skeleton loading (loading$ en DataService) ✅
+Día 8  → 3.2 Toast notificaciones ✅
+Día 9  → 3.5 WhatsApp TXT ← ALTA ✅
+Día 10 → 3.6 Excel XLSX ← ALTA ✅
+Día 11 → 3.3 Búsqueda + 3.4 Modal edición (ajuste) ✅
+Día 12 → 4.1 Producción (empty state) + 4.2 Componentes compartidos (modal/toast) ✅
+Día 13 → 4.3 Exportar reportes (Excel) + 4.4 Filtros fecha ✅
 ```
 
 ---
