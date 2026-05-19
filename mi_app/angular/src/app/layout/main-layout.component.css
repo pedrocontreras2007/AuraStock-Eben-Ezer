@@ -2,7 +2,7 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(180deg, rgba(46, 125, 50, 0.08), rgba(21, 101, 192, 0.08));
+  background: var(--ee-cream);
   font-family: "Segoe UI", Arial, sans-serif;
 }
 
@@ -12,7 +12,7 @@
   align-items: center;
   gap: 1.5rem;
   padding: 1.75rem 2.5rem 1.5rem;
-  background: linear-gradient(135deg, #2e7d32, #1b5e20);
+  background: linear-gradient(135deg, var(--ee-primary), var(--ee-primary-dark));
   color: #ffffff;
 }
 
@@ -22,14 +22,18 @@
   gap: 1.25rem;
 }
 
-.brand__logo {
-  display: block;
+.brand__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 3.5rem;
-  height: auto;
+  height: 3.5rem;
   border-radius: 1.25rem;
   background: rgba(255, 255, 255, 0.2);
-  padding: 0.35rem;
-  object-fit: contain;
+}
+
+.brand__icon .material-symbols-outlined {
+  font-size: 2rem;
 }
 
 .brand h1 {
@@ -89,7 +93,7 @@
   gap: 0.5rem;
   padding: 0.65rem 1.1rem;
   border-radius: 999px;
-  color: #1b5e20;
+  color: var(--ee-primary);
   text-decoration: none;
   font-weight: 600;
   transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
@@ -97,8 +101,8 @@
 
 .layout__nav a.active,
 .layout__nav a:hover {
-  background: linear-gradient(135deg, rgba(46, 125, 50, 0.15), rgba(21, 101, 192, 0.15));
-  color: #0f3d16;
+  background: linear-gradient(135deg, rgba(210, 105, 30, 0.15), rgba(139, 69, 19, 0.1));
+  color: var(--ee-primary-dark);
   transform: translateY(-1px);
 }
 
@@ -160,7 +164,7 @@
   }
 
   .layout__mobile-bar a.mobile-active {
-    color: #1b5e20;
+    color: var(--ee-accent);
   }
 
   .layout__mobile-bar a.mobile-active .material-symbols-outlined {

@@ -1,10 +1,12 @@
 <div class="layout">
   <header class="layout__header">
     <div class="brand">
-      <img class="brand__logo" src="assets/images/aurastock-logo.svg" alt="Logotipo de AuraStøck">
+      <div class="brand__icon">
+        <span class="material-symbols-outlined">bakery_dining</span>
+      </div>
       <div>
-        <h1>AuraStøck</h1>
-        <p>Panel de administración de inventario y producción</p>
+        <h1>Eben Ezer</h1>
+        <p>Control de inventario y producción</p>
       </div>
     </div>
     <div class="layout__user" *ngIf="userState$ | async as userState">

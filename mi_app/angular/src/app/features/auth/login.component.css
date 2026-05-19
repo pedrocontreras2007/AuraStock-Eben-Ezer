@@ -3,9 +3,9 @@
   display: grid;
   place-items: center;
   padding: 2.5rem 1.5rem;
-  background: radial-gradient(circle at 20% 20%, rgba(46, 125, 50, 0.2), transparent 60%),
-    radial-gradient(circle at 80% 0%, rgba(21, 101, 192, 0.15), transparent 55%),
-    #f5f7f5;
+  background: radial-gradient(circle at 20% 20%, rgba(210, 105, 30, 0.15), transparent 60%),
+    radial-gradient(circle at 80% 0%, rgba(139, 69, 19, 0.1), transparent 55%),
+    var(--ee-cream);
 }
 
 .login__card {
@@ -27,17 +27,13 @@
   border-radius: 999px;
   display: grid;
   place-items: center;
-  background: rgba(255, 255, 255, 0.9);
-  padding: 0.85rem;
-  box-shadow: 0 16px 35px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(135deg, var(--ee-cream-dark), var(--ee-cream));
+  box-shadow: 0 16px 35px rgba(139, 69, 19, 0.12);
 }
 
-.login__logo img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  border-radius: 999px;
-  background: transparent;
+.login__logo .material-symbols-outlined {
+  font-size: 3rem;
+  color: var(--ee-primary);
 }
 
 h1 {
@@ -76,8 +72,8 @@ form {
 
 .field input:focus {
   outline: none;
-  border-color: #2e7d32;
-  box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.15);
+  border-color: var(--ee-accent);
+  box-shadow: 0 0 0 3px rgba(210, 105, 30, 0.15);
 }
 
 .field small {
@@ -102,7 +98,7 @@ form {
   background: none;
   padding: 0 0.75rem;
   cursor: pointer;
-  color: #2e7d32;
+  color: var(--ee-accent);
   display: grid;
   place-items: center;
 }
@@ -120,7 +116,7 @@ form {
   font-weight: 600;
   cursor: pointer;
   color: #ffffff;
-  background: linear-gradient(135deg, #2e7d32, #1565c0);
+  background: linear-gradient(135deg, var(--ee-primary), var(--ee-accent));
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -131,7 +127,7 @@ form {
 
 .login__btn:not(:disabled):hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 30px rgba(21, 101, 192, 0.25);
+  box-shadow: 0 12px 30px rgba(139, 69, 19, 0.25);
 }
 
 .login__hint {

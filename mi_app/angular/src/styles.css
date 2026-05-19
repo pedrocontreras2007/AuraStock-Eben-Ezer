@@ -1,9 +1,18 @@
+:root {
+  --ee-primary: #8B4513;
+  --ee-primary-dark: #5C2E0B;
+  --ee-accent: #D2691E;
+  --ee-cream: #FFF8F0;
+  --ee-cream-dark: #F5E6D0;
+  --ee-text: #3E2505;
+}
+
 html, body {
   min-height: 100%;
   margin: 0;
   font-family: "Inter", "Segoe UI", Arial, sans-serif;
-  background: linear-gradient(180deg, rgba(46, 125, 50, 0.05), rgba(21, 101, 192, 0.05));
-  color: #0f172a;
+  background: var(--ee-cream);
+  color: var(--ee-text);
 }
 
 body {

@@ -74,7 +74,7 @@ small {
   border: none;
   border-radius: 16px;
   padding: 0.85rem 1.5rem;
-  background: linear-gradient(135deg, #2e7d32, #1565c0);
+  background: linear-gradient(135deg, var(--ee-primary), var(--ee-accent));
   color: #ffffff;
   font-weight: 600;
   cursor: pointer;
