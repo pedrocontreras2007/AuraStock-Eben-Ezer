@@ -15,3 +15,29 @@ app-root {
   flex: 1;
   display: block;
 }
+
+@media (max-width: 480px) {
+  button, .cta, .list__action, .schedule__cta, .header__action {
+    min-height: 44px;
+    font-size: 0.95rem;
+  }
+
+  form {
+    width: 100%;
+  }
+
+  input, select, textarea {
+    font-size: 16px;
+  }
+
+  table, .schedule__table, .losses__table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+  }
+
+  .field-row {
+    grid-template-columns: 1fr;
+  }
+}

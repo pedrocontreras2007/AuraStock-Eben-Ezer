@@ -821,6 +821,29 @@
     width: 100%;
     justify-content: center;
   }
+
+  .calendar__day {
+    min-height: 48px;
+    padding: 0.35rem;
+    gap: 0.15rem;
+    border-radius: 0.6rem;
+  }
+
+  .calendar__day-number {
+    font-size: 0.85rem;
+  }
+
+  .calendar__events {
+    display: none;
+  }
+
+  .calendar__weekdays {
+    font-size: 0.75rem;
+  }
+
+  .calendar__header h3 {
+    font-size: 1.1rem;
+  }
 }
 
 /* Premium KPI Grid Layout */
