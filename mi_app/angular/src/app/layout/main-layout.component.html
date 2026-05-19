@@ -40,6 +40,19 @@
     </a>
   </nav>
 
+  <!-- Mobile bottom bar -->
+  <nav class="layout__mobile-bar">
+    <a
+      *ngFor="let link of navLinks"
+      [routerLink]="link.path"
+      routerLinkActive="mobile-active"
+      [routerLinkActiveOptions]="{ exact: true }"
+    >
+      <span class="material-symbols-outlined">{{ link.icon }}</span>
+      <span>{{ link.label }}</span>
+    </a>
+  </nav>
+
   <main class="layout__content">
     <router-outlet></router-outlet>
   </main>
