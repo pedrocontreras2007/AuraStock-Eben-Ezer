@@ -1,0 +1,30 @@
+<div class="modal-overlay" [class.modal-overlay--visible]="visible" (click)="onCancel()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <div class="modal-card__header">
+      <h3>{{ config.title }}</h3>
+      <button type="button" class="modal-card__close" (click)="onCancel()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <div class="modal-card__body">
+      <p>{{ config.message }}</p>
+      <div class="modal-card__field" *ngIf="config.mode === 'input'">
+        <input
+          type="text"
+          [(ngModel)]="inputValue"
+          [placeholder]="config.placeholder || ''"
+          (keydown.enter)="onConfirm()"
+        >
+        <span class="modal-card__error" *ngIf="error">{{ error }}</span>
+      </div>
+    </div>
+    <div class="modal-card__footer">
+      <button type="button" class="modal-card__btn modal-card__btn--cancel" (click)="onCancel()">
+        {{ config.cancelText }}
+      </button>
+      <button type="button" class="modal-card__btn modal-card__btn--confirm" (click)="onConfirm()">
+        {{ config.confirmText }}
+      </button>
+    </div>
+  </div>
+</div>

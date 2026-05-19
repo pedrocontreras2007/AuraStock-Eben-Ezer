@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { combineLatest, map, startWith } from 'rxjs';
@@ -6,11 +6,12 @@ import { DataService } from '../../core/services/data.service';
 import { Production, ProductionCategory } from '../../core/models/harvest.model';
 import { QuantityFormatPipe } from '../../shared/pipes/quantity-format.pipe';
 import { AuthService } from '../../core/services/auth.service';
+import { ModalComponent } from '../../shared/components/modal.component';
 
 @Component({
   selector: 'app-harvest',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, QuantityFormatPipe],
+  imports: [CommonModule, ReactiveFormsModule, QuantityFormatPipe, ModalComponent],
   templateUrl: './harvest.component.html',
   styleUrls: ['./harvest.component.css']
 })
@@ -47,6 +48,10 @@ export class HarvestComponent {
     { value: 'lote_preparado', label: 'Lote preparado' },
     { value: 'otro', label: 'Otro' }
   ];
+
+  @ViewChild('deleteModal') deleteModal!: ModalComponent;
+
+  private deletingItem?: Production;
 
   constructor(
     private readonly fb: FormBuilder,
@@ -90,7 +95,27 @@ export class HarvestComponent {
   }
 
   deleteItem(id: string): void {
-    this.data.deleteProduction(id);
+    const items = this.data.productionSnapshot;
+    const item = items.find(p => p.id === id);
+    if (!item) return;
+    this.deletingItem = item;
+    this.deleteModal.open({
+      mode: 'confirm',
+      title: 'Eliminar producción',
+      message: `¿Eliminar el registro de producción de "${item.productName}"?`,
+      confirmText: 'Eliminar',
+      cancelText: 'Cancelar'
+    });
+  }
+
+  onDeleteConfirm(): void {
+    if (!this.deletingItem) return;
+    this.data.deleteProduction(this.deletingItem.id);
+    this.deleteModal.close();
+  }
+
+  onDeleteCancel(): void {
+    this.deletingItem = undefined;
   }
 
   trackItem(_: number, item: Production): string {

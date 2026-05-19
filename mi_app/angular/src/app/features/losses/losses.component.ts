@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { combineLatest, map, startWith } from 'rxjs';
@@ -8,6 +8,7 @@ import { QuantityFormatPipe } from '../../shared/pipes/quantity-format.pipe';
 import { Production } from '../../core/models/harvest.model';
 import { InventoryItem } from '../../core/models/inventory-item.model';
 import { AuthService } from '../../core/services/auth.service';
+import { ModalComponent } from '../../shared/components/modal.component';
 
 interface LossRowView {
   readonly loss: Loss;
@@ -33,7 +34,7 @@ interface LossProductSelection {
 @Component({
   selector: 'app-losses',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, QuantityFormatPipe],
+  imports: [CommonModule, ReactiveFormsModule, QuantityFormatPipe, ModalComponent],
   templateUrl: './losses.component.html',
   styleUrls: ['./losses.component.css']
 })
@@ -78,6 +79,10 @@ export class LossesComponent {
     reason: this.fb.nonNullable.control('', [Validators.required, Validators.maxLength(500)]),
     date: this.fb.nonNullable.control(this.toISODate(new Date()), [Validators.required])
   });
+
+  @ViewChild('removeModal') removeModal!: ModalComponent;
+
+  private removingLoss?: Loss;
 
   constructor(
     private readonly fb: FormBuilder,
@@ -135,9 +140,24 @@ export class LossesComponent {
   }
 
   remove(loss: Loss): void {
-    if (window.confirm(`¿Eliminar la merma registrada de ${loss.productName}?`)) {
-      this.data.removeLoss(loss.id);
-    }
+    this.removingLoss = loss;
+    this.removeModal.open({
+      mode: 'confirm',
+      title: 'Eliminar merma',
+      message: `¿Eliminar la merma registrada de ${loss.productName}?`,
+      confirmText: 'Eliminar',
+      cancelText: 'Cancelar'
+    });
+  }
+
+  onRemoveConfirm(): void {
+    if (!this.removingLoss) return;
+    this.data.removeLoss(this.removingLoss.id);
+    this.removeModal.close();
+  }
+
+  onRemoveCancel(): void {
+    this.removingLoss = undefined;
   }
 
   trackLoss(_: number, row: LossRowView): string { return row.loss.id; }

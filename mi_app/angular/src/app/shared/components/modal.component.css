@@ -1,0 +1,143 @@
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(2px);
+  z-index: 1000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.modal-overlay--visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal-card {
+  background: #fff;
+  border-radius: 12px;
+  max-width: 440px;
+  width: 90%;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  animation: modal-enter 0.2s ease;
+}
+
+@keyframes modal-enter {
+  from {
+    transform: translateY(20px) scale(0.96);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+.modal-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 0;
+}
+
+.modal-card__header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.modal-card__close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #888;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.modal-card__close:hover {
+  background: #f0f0f0;
+  color: #333;
+}
+
+.modal-card__body {
+  padding: 16px 24px;
+}
+
+.modal-card__body p {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #555;
+  line-height: 1.5;
+}
+
+.modal-card__field {
+  margin-top: 14px;
+}
+
+.modal-card__field input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d0d0d0;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+}
+
+.modal-card__field input:focus {
+  border-color: #c0392b;
+  box-shadow: 0 0 0 2px rgba(192, 57, 43, 0.15);
+}
+
+.modal-card__error {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.82rem;
+  color: #c0392b;
+}
+
+.modal-card__footer {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  padding: 0 24px 20px;
+}
+
+.modal-card__btn {
+  padding: 9px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.15s;
+}
+
+.modal-card__btn--cancel {
+  background: #f0f0f0;
+  color: #555;
+}
+
+.modal-card__btn--cancel:hover {
+  background: #e0e0e0;
+}
+
+.modal-card__btn--confirm {
+  background: #c0392b;
+  color: #fff;
+}
+
+.modal-card__btn--confirm:hover {
+  background: #a93226;
+}

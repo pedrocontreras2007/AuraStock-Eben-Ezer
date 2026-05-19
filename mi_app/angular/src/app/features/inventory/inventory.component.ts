@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { combineLatest, map, startWith } from 'rxjs';
@@ -6,11 +6,12 @@ import { DataService } from '../../core/services/data.service';
 import { InventoryCategory, InventoryItem } from '../../core/models/inventory-item.model';
 import { QuantityFormatPipe } from '../../shared/pipes/quantity-format.pipe';
 import { AuthService } from '../../core/services/auth.service';
+import { ModalComponent } from '../../shared/components/modal.component';
 
 @Component({
   selector: 'app-inventory',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, QuantityFormatPipe],
+  imports: [CommonModule, ReactiveFormsModule, QuantityFormatPipe, ModalComponent],
   templateUrl: './inventory.component.html',
   styleUrls: ['./inventory.component.css']
 })
@@ -55,6 +56,10 @@ export class InventoryComponent {
     insumo: 'Insumo', relleno: 'Relleno', empaque: 'Empaque', utensilio: 'Utensilio', otro: 'Otro'
   };
 
+  @ViewChild('adjustModal') adjustModal!: ModalComponent;
+
+  private adjustingItem?: InventoryItem;
+
   constructor(
     private readonly fb: FormBuilder,
     private readonly data: DataService,
@@ -98,19 +103,35 @@ export class InventoryComponent {
   }
 
   adjustQuantity(item: InventoryItem): void {
-    const initialValue = Math.round(item.quantity).toString();
-    const input = window.prompt(`Nueva cantidad para ${item.name}`, initialValue);
-    if (input === null) return;
+    this.adjustingItem = item;
+    this.adjustModal.open({
+      mode: 'input',
+      title: 'Ajustar cantidad',
+      message: `Nueva cantidad para ${item.name}`,
+      inputValue: Math.round(item.quantity).toString(),
+      confirmText: 'Guardar',
+      cancelText: 'Cancelar'
+    });
+  }
 
-    const value = Number(input.trim());
-    if (!Number.isFinite(value) || value < 0) {
-      window.alert('Ingresa un número válido.');
+  onAdjustConfirm(value: string): void {
+    const item = this.adjustingItem;
+    if (!item) return;
+
+    const parsed = Number(value.trim());
+    if (!Number.isFinite(parsed) || parsed < 0) {
+      this.adjustModal.error = 'Ingresa un número válido.';
       return;
     }
 
-    const sanitized = Math.round(value);
+    const sanitized = Math.round(parsed);
     const recordedByUser = this.auth.user?.email ?? undefined;
     this.data.updateInventoryQuantity(item.id, sanitized, undefined, recordedByUser);
+    this.adjustModal.close();
+  }
+
+  onAdjustCancel(): void {
+    this.adjustingItem = undefined;
   }
 
   trackById(_: number, item: InventoryItem): string {
