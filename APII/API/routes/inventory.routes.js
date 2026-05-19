@@ -7,7 +7,7 @@ export default (db) => {
     const router = express.Router();
     const service = InventoryService(db);
 
-    router.get('/', async (req, res) => {
+    router.get('/', requireAuth, async (req, res) => {
         const response = await service.findAll(req.tenantId, req.branchId);
         res.status(response.status).json(response);
     });

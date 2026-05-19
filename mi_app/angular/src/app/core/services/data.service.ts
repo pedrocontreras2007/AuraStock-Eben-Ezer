@@ -32,7 +32,9 @@ export class DataService {
   readonly losses$ = this.lossesSubject.asObservable();
 
   constructor() {
-    this.refreshAllData();
+    this.auth.state$.subscribe(state => {
+      if (state.isAuthenticated) this.refreshAllData();
+    });
   }
 
   get productionSnapshot(): Production[] { return this.productionSubject.value; }
@@ -52,7 +54,7 @@ export class DataService {
   }
 
   private fetchProduction() {
-    this.http.get<ApiResponse<Production[]>>(`${this.API_URL}produccion`)
+    this.http.get<ApiResponse<Production[]>>(`${this.API_URL}produccion`, { headers: this.getAuthHeaders() })
       .subscribe({
         next: (res) => {
           const data = res.data.map(item => ({
@@ -67,7 +69,7 @@ export class DataService {
   }
 
   private fetchInventory() {
-    this.http.get<ApiResponse<InventoryItem[]>>(`${this.API_URL}inventory`)
+    this.http.get<ApiResponse<InventoryItem[]>>(`${this.API_URL}inventory`, { headers: this.getAuthHeaders() })
       .subscribe({
         next: (res) => {
           this.inventorySubject.next(
@@ -82,7 +84,7 @@ export class DataService {
   }
 
   private fetchLosses() {
-    this.http.get<ApiResponse<Loss[]>>(`${this.API_URL}losses`)
+    this.http.get<ApiResponse<Loss[]>>(`${this.API_URL}losses`, { headers: this.getAuthHeaders() })
       .subscribe({
         next: (res) => {
           const data = res.data.map(item => ({
