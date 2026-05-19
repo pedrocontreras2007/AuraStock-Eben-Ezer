@@ -1,7 +1,7 @@
 {
   "outputDirectory": "dist/cooperativa-dashboard/browser",
   "buildCommand": "npx ng build --configuration=production",
-  "installCommand": "npm install",
+  "installCommand": "npm install --legacy-peer-deps",
   "framework": "angular",
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
