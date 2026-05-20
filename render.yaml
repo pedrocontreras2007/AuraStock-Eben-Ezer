@@ -27,6 +27,6 @@ services:
       - key: DB_SSL
         value: "true"
       - key: ALLOWED_ORIGINS
-        value: https://aurastock.vercel.app,http://localhost:4200
+        value: https://aura-stock-eben-ezer.vercel.app,http://localhost:4200
       - key: JWT_SECRET
         generateValue: true
