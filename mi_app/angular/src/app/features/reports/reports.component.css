@@ -16,7 +16,7 @@
   margin: 0;
   font-size: 1.9rem;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--ee-text);
   width: 100%;
 }
 
@@ -46,7 +46,7 @@
   gap: 0.25rem;
   font-size: 0.8rem;
   font-weight: 600;
-  color: #0f172a;
+  color: var(--ee-text);
 }
 
 .reports__filters input {
@@ -68,7 +68,7 @@
   padding: 0.55rem 1rem;
   border-radius: 12px;
   border: 1px solid #e2e8f0;
-  background: #ffffff;
+  background: var(--ee-surface);
   color: var(--ee-primary);
   font-weight: 600;
   font-size: 0.85rem;
@@ -93,8 +93,8 @@
   gap: 1rem;
   padding: 1.5rem;
   border-radius: 1.5rem;
-  background: #ffffff;
-  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
+  background: var(--ee-surface);
+  box-shadow: var(--ee-shadow-md);
 }
 
 .metric-card .material-symbols-outlined {
@@ -104,14 +104,14 @@
 .metric-card h3 {
   margin: 0;
   font-weight: 600;
-  color: #0f172a;
+  color: var(--ee-text);
 }
 
 .metric-card p {
   margin: 0.2rem 0;
   font-size: 1.6rem;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--ee-text);
 }
 
 .metric-card small {
@@ -119,11 +119,11 @@
 }
 
 .metric-card.primary .material-symbols-outlined {
-  color: #2e7d32;
+  color: var(--ee-primary);
 }
 
 .metric-card.info .material-symbols-outlined {
-  color: #1565c0;
+  color: var(--ee-accent);
 }
 
 .metric-card.success .material-symbols-outlined {
@@ -148,7 +148,7 @@
   margin: 0;
   font-size: 1.4rem;
   font-weight: 600;
-  color: #0f172a;
+  color: var(--ee-text);
 }
 
 .chips {
@@ -160,7 +160,7 @@
 .chip {
   padding: 0.85rem 1.1rem;
   border-radius: 1.1rem;
-  background: rgba(21, 101, 192, 0.08);
+  background: rgba(210, 105, 30, 0.08);
   display: flex;
   flex-direction: column;
   min-width: 180px;
@@ -169,7 +169,7 @@
 
 .chip__label {
   font-weight: 600;
-  color: #0f172a;
+  color: var(--ee-text);
   text-transform: capitalize;
 }
 
@@ -194,7 +194,7 @@
   padding: 1.3rem 1.5rem;
   border-radius: 1.5rem;
   background: linear-gradient(135deg, rgba(211, 47, 47, 0.08), rgba(255, 152, 0, 0.1));
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+  box-shadow: var(--ee-shadow-md);
 }
 
 .item__icon {
@@ -228,10 +228,10 @@
 }
 
 .summary-card {
-  background: #ffffff;
+  background: var(--ee-surface);
   border-radius: 1.5rem;
   padding: 1.75rem;
-  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
+  box-shadow: var(--ee-shadow-md);
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -246,12 +246,12 @@
 
 .summary-row .material-symbols-outlined {
   font-size: 2rem;
-  color: #1565c0;
+  color: var(--ee-accent);
 }
 
 .summary-row strong {
   display: block;
-  color: #0f172a;
+  color: var(--ee-text);
 }
 
 .summary-row span {
@@ -261,15 +261,15 @@
 .empty {
   padding: 2rem;
   border-radius: 1.5rem;
-  background: rgba(21, 101, 192, 0.08);
+  background: rgba(210, 105, 30, 0.08);
   text-align: center;
-  color: #0f172a;
+  color: var(--ee-text);
 }
 
 .empty .material-symbols-outlined {
   font-size: 2.75rem;
   margin-bottom: 0.75rem;
-  color: #1565c0;
+  color: var(--ee-accent);
 }
 
 .empty p {
@@ -283,3 +283,25 @@
     grid-template-columns: 1fr;
   }
 }
+
+.production-insights {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.production-insights-card {
+  background: var(--ee-surface);
+  padding: 1.5rem;
+  border-radius: var(--ee-border-radius);
+  box-shadow: var(--ee-shadow-md);
+}
+.production-insights-title {
+  color: var(--ee-primary);
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+.production-insights-value {
+  font-size: 1.5rem;
+  color: var(--ee-text);
+}
+

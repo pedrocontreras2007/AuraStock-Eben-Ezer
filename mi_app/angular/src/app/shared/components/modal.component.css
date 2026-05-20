@@ -18,11 +18,11 @@
 }
 
 .modal-card {
-  background: #fff;
+  background: var(--ee-surface);
   border-radius: 12px;
   max-width: 440px;
   width: 90%;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--ee-shadow-lg);
   animation: modal-enter 0.2s ease;
 }
 
@@ -48,7 +48,7 @@
   margin: 0;
   font-size: 1.1rem;
   font-weight: 600;
-  color: #1a1a2e;
+  color: var(--ee-text);
 }
 
 .modal-card__close {
@@ -65,7 +65,7 @@
 }
 
 .modal-card__close:hover {
-  background: #f0f0f0;
+  background: var(--ee-cream-dark);
   color: #333;
 }
 
@@ -96,15 +96,15 @@
 }
 
 .modal-card__field input:focus {
-  border-color: #c0392b;
-  box-shadow: 0 0 0 2px rgba(192, 57, 43, 0.15);
+  border-color: var(--ee-accent);
+  box-shadow: 0 0 0 2px rgba(210, 105, 30, 0.15);
 }
 
 .modal-card__error {
   display: block;
   margin-top: 6px;
   font-size: 0.82rem;
-  color: #c0392b;
+  color: var(--ee-accent);
 }
 
 .modal-card__footer {
@@ -125,7 +125,7 @@
 }
 
 .modal-card__btn--cancel {
-  background: #f0f0f0;
+  background: var(--ee-cream-dark);
   color: #555;
 }
 
@@ -134,10 +134,32 @@
 }
 
 .modal-card__btn--confirm {
-  background: #c0392b;
-  color: #fff;
+  background: var(--ee-accent);
+  color: var(--ee-surface);
 }
 
 .modal-card__btn--confirm:hover {
-  background: #a93226;
+  background: var(--ee-primary);
+}
+
+@media (max-width: 480px) {
+  .modal-card {
+    width: 92%;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .modal-card__header {
+    padding: 16px 20px 0;
+  }
+  .modal-card__body {
+    padding: 16px 20px;
+  }
+  .modal-card__footer {
+    padding: 0 20px 16px;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .modal-card__btn {
+    width: 100%;
+    min-height: var(--ee-touch-min-height, 48px);
+  }
 }

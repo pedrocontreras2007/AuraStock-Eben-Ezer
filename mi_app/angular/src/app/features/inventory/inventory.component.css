@@ -5,17 +5,17 @@
 
 .inventory__form,
 .inventory__list {
-  background: #ffffff;
+  background: var(--ee-surface);
   border-radius: 1.75rem;
   padding: 2rem;
-  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
+  box-shadow: var(--ee-shadow-md);
 }
 
 .inventory__form h2 {
   margin: 0;
   font-size: 1.8rem;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--ee-text);
 }
 
 .inventory__form p {
@@ -43,7 +43,7 @@ form {
 
 label {
   font-weight: 600;
-  color: #0f172a;
+  color: var(--ee-text);
 }
 
 input,
@@ -58,8 +58,8 @@ select {
 input:focus,
 select:focus {
   outline: none;
-  border-color: #1565c0;
-  box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.2);
+  border-color: var(--ee-accent);
+  box-shadow: 0 0 0 3px rgba(210, 105, 30, 0.2);
 }
 
 small {
@@ -75,7 +75,7 @@ small {
   border-radius: 16px;
   padding: 0.85rem 1.5rem;
   background: linear-gradient(135deg, var(--ee-primary), var(--ee-accent));
-  color: #ffffff;
+  color: var(--ee-surface);
   font-weight: 600;
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -83,7 +83,7 @@ small {
 
 .cta:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 32px rgba(21, 101, 192, 0.25);
+  box-shadow: 0 12px 32px rgba(210, 105, 30, 0.25);
 }
 
 .form-actions {
@@ -113,7 +113,7 @@ small {
   margin: 0;
   font-size: 1.4rem;
   font-weight: 600;
-  color: #0f172a;
+  color: var(--ee-text);
 }
 
 .list__filters {
@@ -125,7 +125,7 @@ small {
 
 .list__filters label {
   font-weight: 600;
-  color: #0f172a;
+  color: var(--ee-text);
 }
 
 .list__filters select {
@@ -147,7 +147,7 @@ small {
   gap: 1.2rem;
   padding: 1.25rem 1.5rem;
   border-radius: 1.5rem;
-  background: linear-gradient(135deg, rgba(21, 101, 192, 0.08), rgba(46, 125, 50, 0.08));
+  background: linear-gradient(135deg, rgba(210, 105, 30, 0.08), rgba(139, 69, 19, 0.08));
   align-items: center;
 }
 
@@ -159,10 +159,10 @@ small {
   width: 52px;
   height: 52px;
   border-radius: 1.1rem;
-  background: rgba(21, 101, 192, 0.18);
+  background: rgba(210, 105, 30, 0.18);
   display: grid;
   place-items: center;
-  color: #1565c0;
+  color: var(--ee-accent);
 }
 
 .list__content strong {
@@ -218,12 +218,12 @@ small {
   padding: 2.25rem 1.5rem;
   border-radius: 1.5rem;
   background: rgba(15, 118, 110, 0.08);
-  color: #0f172a;
+  color: var(--ee-text);
 }
 
 .empty .material-symbols-outlined {
   font-size: 2.75rem;
-  color: #2e7d32;
+  color: var(--ee-primary);
   margin-bottom: 0.75rem;
 }
 
@@ -246,9 +246,9 @@ small {
   gap: 0.6rem;
   margin-bottom: 1rem;
   padding: 0.75rem 1.25rem;
-  background: linear-gradient(135deg, #0f172a, #1e293b);
+  background: linear-gradient(135deg, var(--ee-text), #1e293b);
   border-radius: 1.25rem;
-  color: #ffffff;
+  color: var(--ee-surface);
 }
 
 .category-header .material-symbols-outlined {
@@ -299,7 +299,7 @@ small {
   padding: 0.55rem 1rem;
   border-radius: 12px;
   border: 1px solid #e2e8f0;
-  background: #ffffff;
+  background: var(--ee-surface);
   color: var(--ee-primary);
   font-weight: 600;
   font-size: 0.85rem;
@@ -339,4 +339,9 @@ small {
   .list__actions {
     flex-wrap: wrap;
   }
+}
+
+.out-of-stock {
+  opacity: 0.6;
+  background: rgba(211, 47, 47, 0.05);
 }

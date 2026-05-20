@@ -6,17 +6,17 @@
 .harvest__form,
 .harvest__history,
 .fifo {
-  background: #ffffff;
+  background: var(--ee-surface);
   border-radius: 1.75rem;
   padding: 2rem;
-  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
+  box-shadow: var(--ee-shadow-md);
 }
 
 .harvest__form h2 {
   margin: 0;
   font-size: 1.8rem;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--ee-text);
 }
 
 .harvest__form p {
@@ -44,7 +44,7 @@ form {
 
 label {
   font-weight: 600;
-  color: #0f172a;
+  color: var(--ee-text);
 }
 
 input,
@@ -59,8 +59,8 @@ select {
 input:focus,
 select:focus {
   outline: none;
-  border-color: #2e7d32;
-  box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.18);
+  border-color: var(--ee-primary);
+  box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.18);
 }
 
 small {
@@ -76,7 +76,7 @@ small {
   border-radius: 16px;
   padding: 0.85rem 1.5rem;
   background: linear-gradient(135deg, var(--ee-primary), var(--ee-accent));
-  color: #ffffff;
+  color: var(--ee-surface);
   font-weight: 600;
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -89,7 +89,7 @@ small {
 
 .cta:not(:disabled):hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 32px rgba(21, 101, 192, 0.25);
+  box-shadow: 0 12px 32px rgba(210, 105, 30, 0.25);
 }
 
 .history__header {
@@ -114,7 +114,7 @@ small {
 
 .history__filters label {
   font-weight: 600;
-  color: #0f172a;
+  color: var(--ee-text);
 }
 
 .history__filters select {
@@ -136,17 +136,17 @@ small {
   gap: 1.2rem;
   padding: 1.25rem 1.5rem;
   border-radius: 1.5rem;
-  background: linear-gradient(135deg, rgba(46, 125, 50, 0.07), rgba(21, 101, 192, 0.07));
+  background: linear-gradient(135deg, rgba(139, 69, 19, 0.07), rgba(210, 105, 30, 0.07));
 }
 
 .history__icon {
   width: 52px;
   height: 52px;
   border-radius: 1.1rem;
-  background: rgba(46, 125, 50, 0.18);
+  background: rgba(139, 69, 19, 0.18);
   display: grid;
   place-items: center;
-  color: #2e7d32;
+  color: var(--ee-primary);
 }
 
 .history__content strong {
@@ -178,12 +178,12 @@ small {
   padding: 2.25rem 1.5rem;
   border-radius: 1.5rem;
   background: rgba(15, 118, 110, 0.08);
-  color: #0f172a;
+  color: var(--ee-text);
 }
 
 .empty .material-symbols-outlined {
   font-size: 2.75rem;
-  color: #2e7d32;
+  color: var(--ee-primary);
   margin-bottom: 0.75rem;
 }
 
@@ -250,7 +250,7 @@ small {
 
 .fifo__table th {
   font-weight: 600;
-  color: #0f172a;
+  color: var(--ee-text);
   background: #f8fafc;
 }
 
@@ -266,20 +266,20 @@ small {
   height: 32px;
   border-radius: 999px;
   background: rgba(100, 116, 139, 0.15);
-  color: #0f172a;
+  color: var(--ee-text);
   font-weight: 600;
 }
 
 .fifo__badge--primary {
-  background: rgba(46, 125, 50, 0.2);
-  color: #2e7d32;
+  background: rgba(139, 69, 19, 0.2);
+  color: var(--ee-primary);
 }
 
 .fifo__badge-label {
   margin-left: 0.5rem;
   font-size: 0.85rem;
   font-weight: 600;
-  color: #2e7d32;
+  color: var(--ee-primary);
 }
 
 @media (max-width: 768px) {
@@ -290,4 +290,16 @@ small {
   .history__meta {
     text-align: left;
   }
+}
+
+.btn-delete {
+  background: rgba(211, 47, 47, 0.1);
+  color: var(--ee-error);
+  border: none;
+  padding: 0.5rem;
+  border-radius: var(--ee-border-radius);
+  cursor: pointer;
+}
+.btn-delete:hover {
+  background: rgba(211, 47, 47, 0.2);
 }

@@ -1,18 +1,46 @@
 :root {
+  /* Color Palette - Cálida */
   --ee-primary: #8B4513;
   --ee-primary-dark: #5C2E0B;
   --ee-accent: #D2691E;
   --ee-cream: #FFF8F0;
   --ee-cream-dark: #F5E6D0;
   --ee-text: #3E2505;
+  --ee-surface: #FFFFFF;
+  --ee-border: #E0D4C8;
+  --ee-error: #D32F2F;
+  --ee-success: #388E3C;
+  --ee-warning: #F57C00;
+  
+  /* Elevaciones (Sombras) */
+  --ee-shadow-sm: 0 1px 3px rgba(92, 46, 11, 0.08); /* Sombra muy sutil */
+  --ee-shadow-md: 0 4px 6px rgba(92, 46, 11, 0.06), 0 2px 4px rgba(92, 46, 11, 0.04);
+  --ee-shadow-lg: 0 10px 15px rgba(92, 46, 11, 0.05), 0 4px 6px rgba(92, 46, 11, 0.03);
+
+  /* Touch Targets y Espaciados */
+  --ee-touch-min-height: 48px;
+  --ee-border-radius: 8px;
+}
+
+/* Restablecer Box Sizing y Áreas Seguras (Mobile First) */
+* {
+  box-sizing: border-box;
 }
 
 html, body {
   min-height: 100%;
   margin: 0;
+  padding: 0;
+  /* Soporte para notch y barras de navegacion movil */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+
   font-family: "Inter", "Segoe UI", Arial, sans-serif;
   background: var(--ee-cream);
   color: var(--ee-text);
+  -webkit-font-smoothing: antialiased;
 }
 
 body {
@@ -25,9 +53,28 @@ app-root {
   display: block;
 }
 
+/* Transiciones globales suaves para interactivos en PC */
+@media (hover: hover) and (pointer: fine) {
+  button, a, .clickable {
+    transition: all 0.2s ease-out;
+  }
+}
+
+/* Touch Targets: Asegurar tamaño mínimo para móviles */
+button, 
+input, 
+select, 
+textarea, 
+.cta, 
+.list__action, 
+.schedule__cta, 
+.header__action {
+  min-height: var(--ee-touch-min-height);
+  border-radius: var(--ee-border-radius);
+}
+
 @media (max-width: 480px) {
   button, .cta, .list__action, .schedule__cta, .header__action {
-    min-height: 44px;
     font-size: 0.95rem;
   }
 
@@ -35,6 +82,7 @@ app-root {
     width: 100%;
   }
 
+  /* Prevenir zoom automático en iOS al hacer focus */
   input, select, textarea {
     font-size: 16px;
   }

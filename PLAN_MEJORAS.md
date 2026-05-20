@@ -1,170 +1,82 @@
-# PLAN DE REDISEÑO FRONTEND — EBEN EZER
+# PLAN DE REDISEÑO FRONTEND — EBEN EZER (V2: MOBILE-FIRST & UI ELEGANTE)
 
-> Generado: 19/05/2026
-> Objetivo: Unificar look & feel, paleta cálida 100%, eliminar CSS muerto, pulir responsive y micro-interacciones.
-
----
-
-## DIAGNÓSTICO
-
-La app está "a medio pintar": login y layout usan la nueva paleta cálida (ocre/café/crema), pero el resto de componentes (Dashboard, Mermas, Alertas, Reportes, Harvest, Modal, Toast) siguen con los colores verde/azul originales. Además hay CSS muerto, secciones sin estilos y brechas responsive.
-
-**Puntaje estético actual: 2.3 / 5**
+> Generado: 20/05/2026
+> Objetivo: Crear una interfaz verdaderamente profesional, comenzando con una arquitectura Mobile-First y un Design System sólido, para luego iterar sobre los componentes.
 
 ---
 
-## PALETA OBJETIVO
+## FASE 1: DESIGN SYSTEM Y FUNDAMENTOS (GLOBAL)
+**Establecer las reglas del juego para todo el sistema antes de tocar los componentes.**
 
-```css
---ee-primary: #8B4513;       /* Café principal */
---ee-primary-dark: #5C2E0B;  /* Café oscuro */
---ee-accent: #D2691E;        /* Ocre / naranja quemado */
---ee-cream: #FFF8F0;         /* Fondo crema */
---ee-cream-dark: #F5E6D0;    /* Crema oscuro / borde */
---ee-text: #3E2505;          /* Texto café oscuro */
-```
+### 1.1 Variables CSS Completas
+- Expandir paleta cálida (primarios, acentos, fondos, estados, superficies).
+- Variables tipográficas y de espaciado.
+- Elevaciones (sombras suaves) para profundidad.
+- 🗂️ `styles.css`
 
----
+### 1.2 Áreas Seguras (Safe Areas) y Reset
+- Implementar `env(safe-area-inset-bottom)` y `env(safe-area-inset-top)`.
+- Global `box-sizing: border-box`.
+- 🗂️ `styles.css`
 
-## FASE 1 — UNIFICAR PALETA CÁLIDA
-
-### 1.1 Dashboard
-- Reemplazar `#1565c0` → `var(--ee-accent)` en toda la hoja
-- Reemplazar `#2e7d32` → `var(--ee-primary)`
-- Reemplazar `#0f172a` → `var(--ee-text)`
-- Actualizar gradients de barras y fondos de cards
-- 🗂️ `dashboard.component.css`
-
-### 1.2 Losses / Mermas
-- Migrar todos los colores a variables CSS
-- Eliminar ~84 líneas de SVG donut chart muerto
-- 🗂️ `losses.component.css`
-
-### 1.3 Stock Alerts
-- Migrar a paleta cálida
-- Agregar `.badge__low` que falta en CSS
-- 🗂️ `stock-alerts.component.css`
-
-### 1.4 Harvest / Producción
-- Migrar colores restantes (iconos, fondos list item)
-- Agregar estilo para `.btn-delete`
-- 🗂️ `harvest.component.css`
-
-### 1.5 Reports
-- Migrar metric cards, chips, summary, empty state
-- 🗂️ `reports.component.css`
-
-### 1.6 Modal
-- Botón confirmar: rojo `#c0392b` → `var(--ee-accent)`
-- Input focus: rojo → `var(--ee-accent)`
-- Cancelar: gris → `var(--ee-cream-dark)`
-- 🗂️ `modal.component.css`
-
-### 1.7 Toast
-- Migrar de inline styles a CSS variables
-- Éxito: `var(--ee-primary)`, Error: `#b71c1c`
-- 🗂️ `toast.component.ts`
+### 1.3 Touch Targets (Accesibilidad)
+- Todo elemento clickable (botones, actions, inputs) debe tener un `min-height: 48px`.
+- 🗂️ `styles.css`
 
 ---
 
-## FASE 2 — CSS MUERTO Y SECCIONES SIN ESTILO
+## FASE 2: LAYOUT BASE Y NAVEGACIÓN
+**Mejorar la estructura que contiene a las vistas.**
 
-### 2.1 Dashboard
-- Eliminar `.summary-card` duplicado (líneas 45-53, 552-589)
-- Eliminar `.action-card` icon colors legacy (líneas 740-759)
-- Agregar `.dashboard__zero-stock` (template lo usa, CSS no existe)
-- 🗂️ `dashboard.component.css`
+### 2.1 Mobile Bottom Bar
+- Rediseñar con backdrop-filter (glassmorphism) si es posible.
+- Ajustar área segura inferior.
+- Transiciones suaves en el estado activo.
+- 🗂️ `main-layout.component.css`
 
-### 2.2 Reports
-- Agregar estilos para `.production-insights-*` (hoy sin CSS, renderizan raw HTML)
-- 🗂️ `reports.component.css`
+### 2.2 Desktop Layout
+- Contenedor flexible con `max-width: 1200px` y `margin: 0 auto;`.
+- Adaptar layout para aprovechar el espacio horizontal sin deformar las vistas.
+- 🗂️ `main-layout.component.css`
 
-### 2.3 Login
-- Agregar `.tenant-btn`, `.tenant-list`, `.tenant-icon`, `.back-btn` (hoy sin estilo)
-- 🗂️ `login.component.css`
+---
 
-### 2.4 Stock Alerts
-- Agregar `.badge__low` (template lo usa, CSS no existe)
-- Eliminar sombra pesada `0 20px 40px` de list items
-- 🗂️ `stock-alerts.component.css`
+## FASE 3: REFACTORIZACIÓN VISUAL DE COMPONENTES
+**Inyectar la paleta cálida y adaptar el CSS heredado.**
 
-### 2.5 Inventory
-- Agregar `.out-of-stock` class CSS (template lo usa)
+### 3.1 Dashboard & Reportes
+- Paleta cálida (reemplazar verdes/azules).
+- Tarjetas flotantes y fluidas.
+- Limpieza de CSS muerto.
+- 🗂️ `dashboard.component.css`, `reports.component.css`
+
+### 3.2 Tablas e Inventario
+- Comportamiento responsive robusto (`overflow-x: auto` en contenedores de tabla).
 - 🗂️ `inventory.component.css`
 
----
+### 3.3 Formularios, Alertas, Mermas y Cosecha
+- Limpiar CSS muerto.
+- Aplicar `border-radius` sutil (8-12px).
+- Fokus state coherente.
+- 🗂️ `losses.component.css`, `harvest.component.css`, `stock-alerts.component.css`
 
-## FASE 3 — MOBILE POLISH
-
-### 3.1 Breakpoint 480px
-- Agregar `@media (max-width: 480px)` en cada componente
-- Forms: padding más grande en inputs para touch
-- Cards: padding reducir de 2rem → 1.25rem
-- Tablas: scroll-x forzado (hoy solo global)
-
-### 3.2 Bottom bar
-- Texto: 0.6rem → 0.7rem
-- Iconos: 1.3rem → 1.4rem
-- Active indicator: barra superior en vez de solo color
-
-### 3.3 Modal responsive
-- En móvil: 92% width, padding reducido
-- Botones full-width apilados
-
-### 3.4 Calendar mobile
-- En vez de ocultar eventos, mostrar círculo indicador (•)
-- 🗂️ `dashboard.component.css`
+### 3.4 Modales
+- Padding reducido en móvil, 90%-95% width.
+- 🗂️ `modal.component.css`, (Revisar global si aplica)
 
 ---
 
-## FASE 4 — MICRO-INTERACCIONES Y POLISH
+## FASE 4: MICRO-INTERACCIONES Y FEEDBACK
+**Pulir detalles para la sensación de app nativa.**
 
 ### 4.1 Global
-- Agregar `box-sizing: border-box` en `styles.css`
-- Unificar `transition: 0.2s ease` en todos los interactive elements
+- Transición general `transition: all 0.2s ease-out` o enfocada a transform/background.
 
-### 4.2 Toast mejorado
-- Sombra + slide animation
-- Auto-focus dismiss
-- Soporte para cola de toasts
+### 4.2 Toast y Respuestas
+- Sombra y slide animation.
+- Desde abajo en móvil, esquina en PC.
+- 🗂️ `toast.component.ts` (si tiene CSS inline) / `global`
 
-### 4.3 Modal mejorado
-- Auto-focus en input al abrir
-- Cerrar con tecla Escape
-- Trap focus dentro del modal
-
-### 4.4 Dashboard KPIs
-- Tooltips suaves en hover
-- Iconos decorativos con color brand
-
-### 4.5 List items
-- Hover con escala sutil (transform: scale(1.01))
-- Transición en background
-
----
-
-## CRONOGRAMA ESTIMADO
-
-```
-Fase 1 — Unificar paleta       ~3h
-Fase 2 — CSS muerto + faltante  ~2h
-Fase 3 — Mobile polish          ~1.5h
-Fase 4 — Micro-interacciones    ~1.5h
-Total                          ~8h (~1 día)
-```
-
-## ARCHIVOS A MODIFICAR
-
-| Archivo | Fases |
-|---|---|
-| `dashboard.component.css` | 1.1, 2.1, 3.4, 4.4, 4.5 |
-| `losses.component.css` | 1.2 |
-| `stock-alerts.component.css` | 1.3, 2.4 |
-| `harvest.component.css` | 1.4 |
-| `reports.component.css` | 1.5, 2.2 |
-| `modal.component.css` | 1.6, 3.3, 4.3 |
-| `toast.component.ts` | 1.7, 4.2 |
-| `login.component.css` | 2.3 |
-| `inventory.component.css` | 2.5, 4.5 |
-| `styles.css` | 4.1 |
-| `main-layout.component.css` | 3.2 |
+### 4.3 Detalles extra
+- Empty states con texto y color adecuado.
+- Hover states en desktop sutiles (escala o sombra extra).

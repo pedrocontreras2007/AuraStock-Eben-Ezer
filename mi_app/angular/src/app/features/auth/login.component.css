@@ -156,3 +156,59 @@ form {
     transform: rotate(360deg);
   }
 }
+
+.tenant-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 1px solid var(--ee-border);
+  border-radius: var(--ee-border-radius);
+  background: var(--ee-surface);
+  cursor: pointer;
+  transition: all 0.2s ease-out;
+  color: var(--ee-text);
+  font-weight: 500;
+  width: 100%;
+}
+.tenant-btn:hover {
+  background: var(--ee-cream);
+  border-color: var(--ee-accent);
+  transform: translateY(-2px);
+  box-shadow: var(--ee-shadow-sm);
+}
+
+.tenant-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.tenant-icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(210, 105, 30, 0.1);
+  color: var(--ee-accent);
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  color: var(--ee-text);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  padding: 0;
+  transition: color 0.2s ease-out;
+}
+.back-btn:hover {
+  color: var(--ee-accent);
+}
+
