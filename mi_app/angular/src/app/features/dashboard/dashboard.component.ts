@@ -72,7 +72,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
   editingReminderId: string | null = null;
 
   readonly categoryLabels: Record<string, string> = {
-    insumo: 'Insumos', relleno: 'Rellenos', empaque: 'Empaques', utensilio: 'Utensilios', otro: 'Otros'
+    materia_prima: 'Materia Prima', salsas_gourmet: 'Salsas gourmet', bebestibles: 'Bebestibles',
+    materiales_desechables: 'Materiales desechables', frutas: 'Frutas', utiles_aseo: 'Útiles de aseo'
   };
 
   public barChartOptions: ChartOptions<'bar'> = {

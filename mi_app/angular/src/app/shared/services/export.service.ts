@@ -10,10 +10,15 @@ export interface WhatsAppSection {
 
 @Injectable({ providedIn: 'root' })
 export class ExportService {
+  readonly categoryLabels: Record<string, string> = {
+    materia_prima: 'Materia Prima', salsas_gourmet: 'Salsas gourmet', bebestibles: 'Bebestibles',
+    materiales_desechables: 'Materiales desechables', frutas: 'Frutas', utiles_aseo: 'Útiles de aseo'
+  };
+
   generateWhatsAppText(sections: WhatsAppSection[]): string {
     const now = new Intl.DateTimeFormat('es-CL', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date());
     const lines: string[] = [
-      `🧾 EBEN EZER — PEDIDO DE INSUMOS`,
+      `🧾 EBEN EZER — PEDIDO DE REPOSICIÓN`,
       `📅 ${now}`,
       ``
     ];
@@ -33,7 +38,7 @@ export class ExportService {
       const q = parseQuantity(item.quantity);
       return {
         Producto: item.name,
-        Categoría: item.category,
+        Categoría: this.categoryLabels[item.category] || item.category,
         Cantidad: item.quantity,
         Unidad: item.unit,
         'Stock Mín': item.minStock ?? 10,

@@ -33,13 +33,14 @@ export const produccionSchema = Joi.object({
 
 export const inventorySchema = Joi.object({
     name: Joi.string().trim().min(1).max(150).required(),
-    category: Joi.string().valid('insumo', 'relleno', 'empaque', 'utensilio', 'otro').required(),
+    category: Joi.string().valid('materia_prima', 'salsas_gourmet', 'bebestibles', 'materiales_desechables', 'frutas', 'utiles_aseo').required(),
     quantity: Joi.string().allow('').required(),
     unit: Joi.string().trim().optional().allow(null, ''),
     minStock: Joi.number().min(0).optional().default(10),
     criticalStock: Joi.number().min(0).optional().default(5),
     recordedBy: Joi.string().trim().max(150).optional().allow(null, ''),
-    recordedByUser: Joi.string().trim().email().optional().allow(null, '')
+    recordedByUser: Joi.string().trim().email().optional().allow(null, ''),
+    inventoryDate: Joi.string().isoDate().optional().allow(null, '')
 });
 
 export const lossSchema = Joi.object({

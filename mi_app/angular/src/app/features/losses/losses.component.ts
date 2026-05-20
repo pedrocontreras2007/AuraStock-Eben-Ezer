@@ -43,6 +43,11 @@ interface LossProductSelection {
 export class LossesComponent {
   readonly filterControl = this.fb.nonNullable.control<string>('todos');
 
+  readonly categoryLabels: Record<string, string> = {
+    materia_prima: 'Materia Prima', salsas_gourmet: 'Salsas gourmet', bebestibles: 'Bebestibles',
+    materiales_desechables: 'Materiales desechables', frutas: 'Frutas', utiles_aseo: 'Útiles de aseo'
+  };
+
   readonly vm$ = combineLatest([
     this.data.losses$,
     this.data.inventory$,
@@ -164,7 +169,7 @@ export class LossesComponent {
 
       if (loss.sourceType === 'inventory' && loss.sourceId) {
         const item = inventoryMap.get(loss.sourceId);
-        sourceLabel = item ? `Inventario · ${item.category}` : 'Inventario';
+        sourceLabel = item ? `Inventario · ${this.categoryLabels[item.category] || item.category}` : 'Inventario';
         remainingStock = item ? parseQuantity(item.quantity) : null;
       } else if (loss.sourceType === 'produccion' && loss.sourceId) {
         const prod = productionMap.get(loss.sourceId);
@@ -178,7 +183,7 @@ export class LossesComponent {
   private buildAvailableProducts(production: Production[], inventory: InventoryItem[]): LossProductOption[] {
     const inventoryOptions: LossProductOption[] = inventory
       .filter(item => parseQuantity(item.quantity) > 0)
-      .map(item => ({ ref: `inventory:${item.id}`, name: item.name, stock: parseQuantity(item.quantity), source: 'inventory', description: `Inventario · ${item.category}`, displayQty: item.quantity }));
+      .map(item => ({ ref: `inventory:${item.id}`, name: item.name, stock: parseQuantity(item.quantity), source: 'inventory', description: `Inventario · ${this.categoryLabels[item.category] || item.category}`, displayQty: item.quantity }));
     const productionOptions: LossProductOption[] = production
       .filter(p => p.quantity > 0)
       .map(p => ({ ref: `produccion:${p.id}`, name: p.productName, stock: p.quantity, source: 'produccion', description: `Producción · ${p.category}`, displayQty: String(p.quantity) }));

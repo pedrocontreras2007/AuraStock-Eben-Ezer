@@ -23,14 +23,6 @@ const mapLossRow = (row) => ({
 const adjustStockAfterLossChange = async (db, { sourceType, sourceId, productName, tenantId }, amount) => {
     if (!sourceType) return;
 
-    if (sourceType === 'inventory') {
-        if (sourceId) {
-            await db.mysqlquery('UPDATE inventory_items SET quantity = quantity + ? WHERE id = ? AND tenant_id = ?', [amount, sourceId, tenantId]);
-        } else {
-            await db.mysqlquery('UPDATE inventory_items SET quantity = quantity + ? WHERE name = ? AND tenant_id = ?', [amount, productName, tenantId]);
-        }
-    }
-
     if (sourceType === 'produccion') {
         if (sourceId) {
             await db.mysqlquery('UPDATE produccion SET quantity = quantity + ? WHERE id = ? AND tenant_id = ?', [amount, sourceId, tenantId]);

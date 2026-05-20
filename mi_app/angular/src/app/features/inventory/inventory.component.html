@@ -24,6 +24,11 @@
       </div>
 
       <div class="field">
+        <label for="inventoryDate">Fecha del inventario</label>
+        <input id="inventoryDate" type="date" formControlName="inventoryDate">
+      </div>
+
+      <div class="field">
         <label for="category">Categoría</label>
         <select id="category" formControlName="category">
           <option *ngFor="let option of categories" [value]="option.value">{{ option.label }}</option>
@@ -41,10 +46,16 @@
         </div>
       </div>
 
-      <button type="submit" class="cta">
-        <span class="material-symbols-outlined">add_box</span>
-        <span>Agregar al inventario</span>
-      </button>
+      <div class="form-actions">
+        <button type="submit" class="cta">
+          <span class="material-symbols-outlined">{{ isEditing ? 'save' : 'add_box' }}</span>
+          <span>{{ isEditing ? 'Guardar cambios' : 'Agregar al inventario' }}</span>
+        </button>
+        <button type="button" class="cta cta--cancel" *ngIf="isEditing" (click)="cancelEdit()">
+          <span class="material-symbols-outlined">close</span>
+          <span>Cancelar</span>
+        </button>
+      </div>
     </form>
   </section>
 
@@ -85,9 +96,7 @@
       <ng-container *ngIf="vm.totalItems">
         <div *ngFor="let group of vm.groups" class="category-group">
           <div class="category-header">
-            <span class="material-symbols-outlined">
-              {{ group.category === 'insumo' ? 'bakery_dining' : group.category === 'relleno' ? 'bid_fill' : group.category === 'empaque' ? 'inventory' : group.category === 'utensilio' ? 'handyman' : 'cleaning_services' }}
-            </span>
+            <span class="material-symbols-outlined">{{ categoryIcons[group.category] || 'inventory_2' }}</span>
             <h4>{{ group.label }}</h4>
             <span class="category-count">{{ group.items.length }} producto{{ group.items.length !== 1 ? 's' : '' }}</span>
           </div>
@@ -108,7 +117,7 @@
                 <small *ngIf="item.recordedByUser">Registrado por: {{ item.recordedByUser }}</small>
               </div>
               <div class="list__actions">
-                <button type="button" class="list__action" (click)="adjustQuantity(item)">
+                <button type="button" class="list__action" (click)="editItem(item)">
                   <span class="material-symbols-outlined">edit</span>
                   <span>Ajustar</span>
                 </button>
@@ -125,6 +134,5 @@
   </section>
 </div>
 
-<app-modal #adjustModal (confirm)="onAdjustConfirm($event)" (cancel)="onAdjustCancel()"></app-modal>
 <app-modal #deleteModal (confirm)="onDeleteConfirm()" (cancel)="onDeleteCancel()"></app-modal>
 <app-toast #toast></app-toast>

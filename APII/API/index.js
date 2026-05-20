@@ -101,6 +101,30 @@ const initServer = () => {
         } catch (e) {
             console.warn('⚠ Migración quantity (no crítica):', e.message);
         }
+
+        // Migración: categorías actualizadas
+        try {
+            const migCat = await db.mysqlquery(
+                `ALTER TABLE inventory_items MODIFY COLUMN category ENUM('materia_prima','salsas_gourmet','bebestibles','materiales_desechables','frutas','utiles_aseo') NOT NULL DEFAULT 'materia_prima'`
+            );
+            if (migCat.success) console.log('✓ Migración categorías OK');
+            else console.warn('⚠ Migración categorías:', migCat.error);
+        } catch (e) {
+            console.warn('⚠ Migración categorías (no crítica):', e.message);
+        }
+
+        // Migración: columna inventory_date
+        try {
+            const migDate = await db.mysqlquery(
+                `ALTER TABLE inventory_items ADD COLUMN inventory_date DATE DEFAULT NULL AFTER recorded_by_user`
+            );
+            if (migDate.success) console.log('✓ Migración inventory_date OK');
+            else if (migDate.error?.includes('Duplicate column')) console.log('→ inventory_date ya existe');
+            else console.warn('⚠ Migración inventory_date:', migDate.error);
+        } catch (e) {
+            if (e.message?.includes('Duplicate column')) console.log('→ inventory_date ya existe');
+            else console.warn('⚠ Migración inventory_date (no crítica):', e.message);
+        }
     });
 };
 

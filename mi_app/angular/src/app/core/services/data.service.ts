@@ -118,7 +118,7 @@ export class DataService {
 
   addInventoryItem(input: InventoryItemInput): void {
     const recordedByUser = input.recordedByUser ?? this.auth.user?.email ?? 'sistema@aurastock.app';
-    const payload: InventoryItemInput = { ...input, unit: input.unit || 'unidades', recordedByUser };
+    const payload: InventoryItemInput = { ...input, unit: input.unit || 'unidades', recordedByUser, inventoryDate: input.inventoryDate || null };
     this.http.post(`${this.API_URL}inventory`, payload, { headers: this.getAuthHeaders() }).subscribe({
       next: () => this.fetchInventory(),
       error: () => {}
@@ -132,16 +132,9 @@ export class DataService {
     });
   }
 
-  updateInventoryQuantity(id: string, quantity: string, recordedBy?: string, recordedByUser?: string | null): void {
-    const currentItem = this.inventorySubject.value.find(i => i.id === id);
-    if (!currentItem) return;
-    const recordedByUserValue = recordedByUser ?? this.auth.user?.email ?? currentItem.recordedByUser ?? null;
-    const updateData = {
-      ...currentItem,
-      quantity,
-      recordedBy: recordedBy || currentItem.recordedBy || '',
-      recordedByUser: recordedByUserValue
-    };
+  updateInventoryItem(id: string, data: { name: string; quantity: string; unit: string; category: string; minStock: number; criticalStock: number; inventoryDate?: string | null; recordedBy?: string; recordedByUser?: string | null }): void {
+    const recordedByUserValue = data.recordedByUser ?? this.auth.user?.email ?? null;
+    const updateData = { ...data, recordedBy: data.recordedBy || null, recordedByUser: recordedByUserValue, inventoryDate: data.inventoryDate || null };
     this.http.put(`${this.API_URL}inventory/${id}`, updateData, { headers: this.getAuthHeaders() }).subscribe({
       next: () => this.fetchInventory(),
       error: () => {}

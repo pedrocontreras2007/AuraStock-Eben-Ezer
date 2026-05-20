@@ -1,4 +1,4 @@
-export type InventoryCategory = 'insumo' | 'relleno' | 'empaque' | 'utensilio' | 'otro';
+export type InventoryCategory = 'materia_prima' | 'salsas_gourmet' | 'bebestibles' | 'materiales_desechables' | 'frutas' | 'utiles_aseo';
 export type InventoryUnit = string;
 
 export interface InventoryItem {
@@ -13,6 +13,7 @@ export interface InventoryItem {
   branchId?: string;
   recordedBy?: string;
   recordedByUser?: string | null;
+  inventoryDate?: string | null;
 }
 
 export type InventoryItemInput = Omit<InventoryItem, 'id' | 'tenantId' | 'branchId'>;

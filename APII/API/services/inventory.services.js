@@ -1,5 +1,12 @@
 import { v4 as uuidv4 } from 'uuid';
 
+const toDateValue = (value) => {
+    if (!value) return null;
+    const date = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(date.getTime())) return null;
+    return date.toISOString().slice(0, 10);
+};
+
 const mapInventoryRow = (row) => ({
     id: row.id,
     name: row.name,
@@ -11,7 +18,8 @@ const mapInventoryRow = (row) => ({
     tenantId: row.tenant_id,
     branchId: row.branch_id,
     recordedBy: row.recorded_by,
-    recordedByUser: row.recorded_by_user ?? null
+    recordedByUser: row.recorded_by_user ?? null,
+    inventoryDate: row.inventory_date || null
 });
 
 export default (db) => ({
@@ -37,13 +45,14 @@ export default (db) => ({
     async create(data, tenantId, branchId) {
         const id = uuidv4();
         const query = `INSERT INTO inventory_items 
-            (id, tenant_id, branch_id, name, quantity, unit, category, min_stock, critical_stock, recorded_by, recorded_by_user) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+            (id, tenant_id, branch_id, name, quantity, unit, category, min_stock, critical_stock, recorded_by, recorded_by_user, inventory_date) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
         const values = [
             id, tenantId, branchId || null,
             data.name, data.quantity, data.unit || 'unidades',
             data.category, data.minStock ?? 10, data.criticalStock ?? 5,
-            data.recordedBy || null, data.recordedByUser || null
+            data.recordedBy || null, data.recordedByUser || null,
+            toDateValue(data.inventoryDate)
         ];
         try {
             const results = await db.mysqlquery(query, values);
@@ -59,12 +68,14 @@ export default (db) => ({
         const query = `UPDATE inventory_items SET 
             name = ?, quantity = ?, unit = ?, category = ?,
             min_stock = ?, critical_stock = ?,
-            recorded_by = ?, recorded_by_user = ?
+            recorded_by = ?, recorded_by_user = ?,
+            inventory_date = ?
             WHERE id = ? AND tenant_id = ?`;
         const values = [
             data.name, data.quantity, data.unit || 'unidades', data.category,
             data.minStock ?? 10, data.criticalStock ?? 5,
             data.recordedBy || null, data.recordedByUser || null,
+            toDateValue(data.inventoryDate),
             id, tenantId
         ];
         try {

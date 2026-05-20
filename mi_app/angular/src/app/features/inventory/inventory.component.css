@@ -86,6 +86,22 @@ small {
   box-shadow: 0 12px 32px rgba(21, 101, 192, 0.25);
 }
 
+.form-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.cta--cancel {
+  background: rgba(100, 116, 139, 0.15);
+  color: #475569;
+}
+
+.cta--cancel:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(100, 116, 139, 0.2);
+}
+
 .list__header {
   display: flex;
   flex-direction: column;

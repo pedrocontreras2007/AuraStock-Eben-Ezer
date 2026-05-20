@@ -9,6 +9,11 @@ import { ModalComponent } from '../../shared/components/modal.component';
 import { ToastComponent } from '../../shared/components/toast.component';
 import { ExportService } from '../../shared/services/export.service';
 
+const DEFAULT_MIN_STOCK = '10';
+const DEFAULT_CRITICAL_STOCK = '5';
+const DEFAULT_CATEGORY: InventoryCategory = 'materia_prima';
+const DEFAULT_UNIT = 'unidades';
+
 @Component({
   selector: 'app-inventory',
   standalone: true,
@@ -40,33 +45,46 @@ export class InventoryComponent {
     })
   );
 
+  private readonly todayISODate = new Date().toISOString().slice(0, 10);
+
   readonly form = this.fb.group({
     name: this.fb.nonNullable.control('', [Validators.required, Validators.maxLength(80)]),
     quantity: this.fb.nonNullable.control('', [Validators.required]),
-    category: this.fb.nonNullable.control<InventoryCategory>('insumo'),
-    unit: this.fb.control('unidades'),
-    minStock: this.fb.control('10'),
-    criticalStock: this.fb.control('5')
+    category: this.fb.nonNullable.control<InventoryCategory>(DEFAULT_CATEGORY),
+    unit: this.fb.control(DEFAULT_UNIT),
+    minStock: this.fb.control(DEFAULT_MIN_STOCK),
+    criticalStock: this.fb.control(DEFAULT_CRITICAL_STOCK),
+    inventoryDate: this.fb.control(this.todayISODate)
   });
 
   readonly categories: { value: InventoryCategory; label: string }[] = [
-    { value: 'insumo', label: 'Insumo' },
-    { value: 'relleno', label: 'Relleno' },
-    { value: 'empaque', label: 'Empaque' },
-    { value: 'utensilio', label: 'Utensilio' },
-    { value: 'otro', label: 'Otro' }
+    { value: 'materia_prima', label: 'Materia Prima' },
+    { value: 'salsas_gourmet', label: 'Salsas gourmet' },
+    { value: 'bebestibles', label: 'Bebestibles' },
+    { value: 'materiales_desechables', label: 'Materiales desechables' },
+    { value: 'frutas', label: 'Frutas' },
+    { value: 'utiles_aseo', label: 'Útiles de aseo' }
   ];
 
   readonly categoryLabels: Record<string, string> = {
-    insumo: 'Insumo', relleno: 'Relleno', empaque: 'Empaque', utensilio: 'Utensilio', otro: 'Otro'
+    materia_prima: 'Materia Prima', salsas_gourmet: 'Salsas gourmet', bebestibles: 'Bebestibles',
+    materiales_desechables: 'Materiales desechables', frutas: 'Frutas', utiles_aseo: 'Útiles de aseo'
   };
 
-  @ViewChild('adjustModal') adjustModal!: ModalComponent;
+  readonly categoryIcons: Record<string, string> = {
+    materia_prima: 'bakery_dining', salsas_gourmet: 'lunch_dining', bebestibles: 'local_cafe',
+    materiales_desechables: 'inventory_2', frutas: 'spa', utiles_aseo: 'cleaning_services'
+  };
+
   @ViewChild('deleteModal') deleteModal!: ModalComponent;
   @ViewChild('toast') toast!: ToastComponent;
 
-  private adjustingItem?: InventoryItem;
+  editingItem?: InventoryItem;
   private deletingItem?: InventoryItem;
+
+  get isEditing(): boolean {
+    return !!this.editingItem;
+  }
 
   constructor(
     private readonly fb: FormBuilder,
@@ -84,49 +102,63 @@ export class InventoryComponent {
     const raw = this.form.getRawValue();
     const recordedByUser = this.auth.user?.email ?? undefined;
 
-    this.data.addInventoryItem({
-      name: raw.name.trim(),
-      quantity: raw.quantity.trim(),
-      unit: raw.unit || 'unidades',
-      category: raw.category,
-      minStock: Number(raw.minStock) || 10,
-      criticalStock: Number(raw.criticalStock) || 5,
-      recordedByUser
-    });
+    const inventoryDate = raw.inventoryDate || this.todayISODate;
 
+    if (this.editingItem) {
+      this.data.updateInventoryItem(this.editingItem.id, {
+        name: raw.name.trim(),
+        quantity: raw.quantity.trim(),
+        unit: raw.unit || DEFAULT_UNIT,
+        category: raw.category,
+        minStock: Number(raw.minStock) || 10,
+        criticalStock: Number(raw.criticalStock) || 5,
+        inventoryDate,
+        recordedByUser
+      });
+    } else {
+      this.data.addInventoryItem({
+        name: raw.name.trim(),
+        quantity: raw.quantity.trim(),
+        unit: raw.unit || DEFAULT_UNIT,
+        category: raw.category,
+        minStock: Number(raw.minStock) || 10,
+        criticalStock: Number(raw.criticalStock) || 5,
+        inventoryDate,
+        recordedByUser
+      });
+    }
+
+    this.resetForm();
+  }
+
+  editItem(item: InventoryItem): void {
+    this.editingItem = item;
+    this.form.patchValue({
+      name: item.name,
+      quantity: item.quantity,
+      unit: item.unit || DEFAULT_UNIT,
+      category: item.category,
+      minStock: String(item.minStock ?? 10),
+      criticalStock: String(item.criticalStock ?? 5),
+      inventoryDate: item.inventoryDate || this.todayISODate
+    });
+  }
+
+  cancelEdit(): void {
+    this.resetForm();
+  }
+
+  private resetForm(): void {
     this.form.reset({
       name: '',
       quantity: '',
-      category: 'insumo',
-      unit: 'unidades',
-      minStock: '10',
-      criticalStock: '5'
+      category: DEFAULT_CATEGORY,
+      unit: DEFAULT_UNIT,
+      minStock: DEFAULT_MIN_STOCK,
+      criticalStock: DEFAULT_CRITICAL_STOCK,
+      inventoryDate: this.todayISODate
     });
-  }
-
-  adjustQuantity(item: InventoryItem): void {
-    this.adjustingItem = item;
-    this.adjustModal.open({
-      mode: 'input',
-      title: 'Ajustar cantidad',
-      message: `Nueva cantidad para ${item.name}`,
-      inputValue: item.quantity,
-      confirmText: 'Guardar',
-      cancelText: 'Cancelar'
-    });
-  }
-
-  onAdjustConfirm(value: string): void {
-    const item = this.adjustingItem;
-    if (!item) return;
-
-    const recordedByUser = this.auth.user?.email ?? undefined;
-    this.data.updateInventoryQuantity(item.id, value.trim(), undefined, recordedByUser);
-    this.adjustModal.close();
-  }
-
-  onAdjustCancel(): void {
-    this.adjustingItem = undefined;
+    this.editingItem = undefined;
   }
 
   deleteItem(item: InventoryItem): void {
@@ -152,11 +184,10 @@ export class InventoryComponent {
 
   sendWhatsApp(): void {
     const items = this.data.inventorySnapshot;
-    const supplies = items.filter(i => i.category === 'insumo' || i.category === 'relleno');
     const text = this.exportSvc.generateWhatsAppText([
-      { title: 'AGOTADOS', icon: '❌', items: supplies.filter(i => parseQuantity(i.quantity) === 0) },
-      { title: 'STOCK CRÍTICO', icon: '⚠️', items: supplies.filter(i => { const q = parseQuantity(i.quantity); return q > 0 && q <= (i.criticalStock ?? 5); }) },
-      { title: 'STOCK BAJO', icon: '🔄', items: supplies.filter(i => { const q = parseQuantity(i.quantity); return q <= (i.minStock ?? 10) && q > (i.criticalStock ?? 5); }) }
+      { title: 'AGOTADOS', icon: '❌', items: items.filter(i => parseQuantity(i.quantity) === 0) },
+      { title: 'STOCK CRÍTICO', icon: '⚠️', items: items.filter(i => { const q = parseQuantity(i.quantity); return q > 0 && q <= (i.criticalStock ?? 5); }) },
+      { title: 'STOCK BAJO', icon: '🔄', items: items.filter(i => { const q = parseQuantity(i.quantity); return q <= (i.minStock ?? 10) && q > (i.criticalStock ?? 5); }) }
     ]);
     navigator.clipboard.writeText(text).then(() => {
       this.toast.show({ message: 'Texto copiado — pégalo en WhatsApp', type: 'success' });

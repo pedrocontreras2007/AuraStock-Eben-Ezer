@@ -51,15 +51,10 @@ export default (db) => ({
             data.notes || null
         ];
 
-        const increaseInventoryQuery = `UPDATE inventory_items SET quantity = quantity + ? WHERE name = ? AND tenant_id = ?`;
-
         try {
             const results = await db.mysqlquery(queryInsert, values);
             if (!results.success) throw new Error(results.error);
             const success = results.data.affectedRows > 0;
-            if (success) {
-                await db.mysqlquery(increaseInventoryQuery, [data.quantity, data.productName, tenantId]);
-            }
             return { success, status: success ? 201 : 500, data: { id }, error: success ? null : 'No se pudo crear' };
         } catch (error) {
             return { success: false, status: 500, data: {}, error: 'Error al registrar producción' };
@@ -98,10 +93,6 @@ export default (db) => ({
             const results = await db.mysqlquery(queryDelete, [id, tenantId]);
             if (!results.success) throw new Error(results.error);
 
-            if (results.data.affectedRows > 0) {
-                const reduceStock = 'UPDATE inventory_items SET quantity = quantity - ? WHERE name = ? AND tenant_id = ?';
-                await db.mysqlquery(reduceStock, [record.quantity, record.product_name, tenantId]);
-            }
             return { success: results.data.affectedRows > 0, status: results.data.affectedRows > 0 ? 200 : 404, data: results.data, error: null };
         } catch (error) {
             return { success: false, status: 500, error: 'Error al eliminar registro' };
