@@ -132,7 +132,7 @@
               <strong>{{ item.name }}</strong>
               <small>{{ categoryLabels[item.category] || item.category }}</small>
             </div>
-            <span>{{ item.quantity | quantityFormat }} unidades</span>
+            <span>{{ item.quantity }}{{ item.unit ? ' ' + item.unit : '' }}</span>
           </li>
         </ul>
       </article>
@@ -268,7 +268,7 @@
             <li *ngFor="let item of vm.criticalItems; trackBy: trackInventory">
               <div>
                 <strong>{{ item.name }}</strong>
-                <span>Quedan {{ item.quantity | quantityFormat }} unidades</span>
+                <span>Quedan {{ item.quantity }}{{ item.unit ? ' ' + item.unit : '' }}</span>
                 <small>Categoría: {{ categoryLabels[item.category] || item.category }}</small>
               </div>
               <span class="badge">Crítico</span>

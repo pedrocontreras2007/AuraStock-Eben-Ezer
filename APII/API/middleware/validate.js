@@ -34,7 +34,7 @@ export const produccionSchema = Joi.object({
 export const inventorySchema = Joi.object({
     name: Joi.string().trim().min(1).max(150).required(),
     category: Joi.string().valid('insumo', 'relleno', 'empaque', 'utensilio', 'otro').required(),
-    quantity: Joi.number().min(0).required(),
+    quantity: Joi.string().allow('').required(),
     unit: Joi.string().trim().optional().allow(null, ''),
     minStock: Joi.number().min(0).optional().default(10),
     criticalStock: Joi.number().min(0).optional().default(5),

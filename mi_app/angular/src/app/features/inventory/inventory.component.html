@@ -15,7 +15,7 @@
       <div class="field-row">
         <div class="field">
           <label for="quantity">Cantidad</label>
-          <input id="quantity" type="number" min="0" step="1" formControlName="quantity" placeholder="Ej. 50">
+          <input id="quantity" type="text" formControlName="quantity" placeholder="Ej. 5 kg, 3 cajas y media">
         </div>
         <div class="field">
           <label for="unit">Unidad</label>
@@ -103,8 +103,8 @@
               </div>
               <div class="list__content">
                 <strong>{{ item.name }}</strong>
-                <span>{{ item.quantity }} {{ item.unit }}</span>
-                <small *ngIf="item.minStock">Mín: {{ item.minStock }} {{ item.unit }}</small>
+                <span>{{ item.quantity }}{{ item.unit ? ' ' + item.unit : '' }}</span>
+                <small *ngIf="item.minStock != null">Mín: {{ item.minStock }}</small>
                 <small *ngIf="item.recordedByUser">Registrado por: {{ item.recordedByUser }}</small>
               </div>
               <div class="list__actions">

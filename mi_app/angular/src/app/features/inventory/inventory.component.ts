@@ -3,8 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { combineLatest, map, startWith } from 'rxjs';
 import { DataService } from '../../core/services/data.service';
-import { InventoryCategory, InventoryItem } from '../../core/models/inventory-item.model';
-import { QuantityFormatPipe } from '../../shared/pipes/quantity-format.pipe';
+import { InventoryCategory, InventoryItem, parseQuantity } from '../../core/models/inventory-item.model';
 import { AuthService } from '../../core/services/auth.service';
 import { ModalComponent } from '../../shared/components/modal.component';
 import { ToastComponent } from '../../shared/components/toast.component';
@@ -13,7 +12,7 @@ import { ExportService } from '../../shared/services/export.service';
 @Component({
   selector: 'app-inventory',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, QuantityFormatPipe, ModalComponent, ToastComponent],
+  imports: [CommonModule, ReactiveFormsModule, ModalComponent, ToastComponent],
   templateUrl: './inventory.component.html',
   styleUrls: ['./inventory.component.css']
 })
@@ -43,11 +42,11 @@ export class InventoryComponent {
 
   readonly form = this.fb.group({
     name: this.fb.nonNullable.control('', [Validators.required, Validators.maxLength(80)]),
-    quantity: this.fb.nonNullable.control('', [Validators.required, Validators.pattern(/^[0-9]*$/)]),
+    quantity: this.fb.nonNullable.control('', [Validators.required]),
     category: this.fb.nonNullable.control<InventoryCategory>('insumo'),
     unit: this.fb.control('unidades'),
-    minStock: this.fb.control('10', [Validators.pattern(/^[0-9]*$/)]),
-    criticalStock: this.fb.control('5', [Validators.pattern(/^[0-9]*$/)])
+    minStock: this.fb.control('10'),
+    criticalStock: this.fb.control('5')
   });
 
   readonly categories: { value: InventoryCategory; label: string }[] = [
@@ -83,18 +82,11 @@ export class InventoryComponent {
     }
 
     const raw = this.form.getRawValue();
-    const parsed = Number(raw.quantity);
-    if (!Number.isFinite(parsed) || parsed < 0) {
-      this.form.controls.quantity.setErrors({ invalid: true });
-      return;
-    }
-
-    const quantity = Math.round(parsed);
     const recordedByUser = this.auth.user?.email ?? undefined;
 
     this.data.addInventoryItem({
       name: raw.name.trim(),
-      quantity,
+      quantity: raw.quantity.trim(),
       unit: raw.unit || 'unidades',
       category: raw.category,
       minStock: Number(raw.minStock) || 10,
@@ -118,7 +110,7 @@ export class InventoryComponent {
       mode: 'input',
       title: 'Ajustar cantidad',
       message: `Nueva cantidad para ${item.name}`,
-      inputValue: Math.round(item.quantity).toString(),
+      inputValue: item.quantity,
       confirmText: 'Guardar',
       cancelText: 'Cancelar'
     });
@@ -128,15 +120,8 @@ export class InventoryComponent {
     const item = this.adjustingItem;
     if (!item) return;
 
-    const parsed = Number(value.trim());
-    if (!Number.isFinite(parsed) || parsed < 0) {
-      this.adjustModal.error = 'Ingresa un número válido.';
-      return;
-    }
-
-    const sanitized = Math.round(parsed);
     const recordedByUser = this.auth.user?.email ?? undefined;
-    this.data.updateInventoryQuantity(item.id, sanitized, undefined, recordedByUser);
+    this.data.updateInventoryQuantity(item.id, value.trim(), undefined, recordedByUser);
     this.adjustModal.close();
   }
 
@@ -169,9 +154,9 @@ export class InventoryComponent {
     const items = this.data.inventorySnapshot;
     const supplies = items.filter(i => i.category === 'insumo' || i.category === 'relleno');
     const text = this.exportSvc.generateWhatsAppText([
-      { title: 'AGOTADOS', icon: '❌', items: supplies.filter(i => i.quantity === 0) },
-      { title: 'STOCK CRÍTICO', icon: '⚠️', items: supplies.filter(i => i.quantity > 0 && i.quantity <= (i.criticalStock ?? 5)) },
-      { title: 'STOCK BAJO', icon: '🔄', items: supplies.filter(i => i.quantity <= (i.minStock ?? 10) && i.quantity > (i.criticalStock ?? 5)) }
+      { title: 'AGOTADOS', icon: '❌', items: supplies.filter(i => parseQuantity(i.quantity) === 0) },
+      { title: 'STOCK CRÍTICO', icon: '⚠️', items: supplies.filter(i => { const q = parseQuantity(i.quantity); return q > 0 && q <= (i.criticalStock ?? 5); }) },
+      { title: 'STOCK BAJO', icon: '🔄', items: supplies.filter(i => { const q = parseQuantity(i.quantity); return q <= (i.minStock ?? 10) && q > (i.criticalStock ?? 5); }) }
     ]);
     navigator.clipboard.writeText(text).then(() => {
       this.toast.show({ message: 'Texto copiado — pégalo en WhatsApp', type: 'success' });
@@ -188,10 +173,11 @@ export class InventoryComponent {
   }
 
   isLowStock(item: InventoryItem): boolean {
-    return item.quantity <= (item.criticalStock ?? 5);
+    const q = parseQuantity(item.quantity);
+    return q > 0 && q <= (item.criticalStock ?? 5);
   }
 
   isOutOfStock(item: InventoryItem): boolean {
-    return item.quantity === 0;
+    return parseQuantity(item.quantity) === 0;
   }
 }

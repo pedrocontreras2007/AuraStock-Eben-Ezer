@@ -132,7 +132,7 @@ export class DataService {
     });
   }
 
-  updateInventoryQuantity(id: string, quantity: number, recordedBy?: string, recordedByUser?: string | null): void {
+  updateInventoryQuantity(id: string, quantity: string, recordedBy?: string, recordedByUser?: string | null): void {
     const currentItem = this.inventorySubject.value.find(i => i.id === id);
     if (!currentItem) return;
     const recordedByUserValue = recordedByUser ?? this.auth.user?.email ?? currentItem.recordedByUser ?? null;

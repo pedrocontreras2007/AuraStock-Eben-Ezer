@@ -2,13 +2,12 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { combineLatest, map } from 'rxjs';
 import { DataService } from '../../core/services/data.service';
-import { InventoryItem } from '../../core/models/inventory-item.model';
-import { QuantityFormatPipe } from '../../shared/pipes/quantity-format.pipe';
+import { InventoryItem, parseQuantity } from '../../core/models/inventory-item.model';
 
 interface StockAlertItem {
   readonly id: string;
   readonly name: string;
-  readonly quantity: number;
+  readonly quantity: string;
   readonly unit: string;
   readonly category: string;
   readonly minStock: number;
@@ -27,7 +26,7 @@ interface StockAlertsViewModel {
 @Component({
   selector: 'app-stock-alerts',
   standalone: true,
-  imports: [CommonModule, QuantityFormatPipe],
+  imports: [CommonModule],
   templateUrl: './stock-alerts.component.html',
   styleUrls: ['./stock-alerts.component.css']
 })
@@ -35,9 +34,10 @@ export class StockAlertsComponent {
   readonly alerts$ = combineLatest([this.data.inventory$]).pipe(
     map(([inventory]): StockAlertsViewModel => {
       const alerts = inventory.map((item: InventoryItem): StockAlertItem => {
-        const outOfStock = item.quantity === 0;
-        const critical = item.quantity > 0 && item.quantity <= (item.criticalStock ?? 5);
-        const low = item.quantity > (item.criticalStock ?? 5) && item.quantity <= (item.minStock ?? 10);
+        const q = parseQuantity(item.quantity);
+        const outOfStock = q === 0;
+        const critical = q > 0 && q <= (item.criticalStock ?? 5);
+        const low = q > (item.criticalStock ?? 5) && q <= (item.minStock ?? 10);
 
         let status: 'critical' | 'low' | 'out_of_stock' | 'ok';
         let icon: string;

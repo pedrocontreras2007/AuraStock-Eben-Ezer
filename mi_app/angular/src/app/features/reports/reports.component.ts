@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { combineLatest, map, startWith } from 'rxjs';
 import { DataService } from '../../core/services/data.service';
-import { InventoryItem } from '../../core/models/inventory-item.model';
+import { InventoryItem, parseQuantity } from '../../core/models/inventory-item.model';
 import { Production } from '../../core/models/harvest.model';
 import { QuantityFormatPipe } from '../../shared/pipes/quantity-format.pipe';
 import { ExportService } from '../../shared/services/export.service';
@@ -43,20 +43,20 @@ export class ReportsComponent {
         return true;
       });
 
-      const inventoryStock = items.reduce((sum, item) => sum + item.quantity, 0);
+      const inventoryStock = items.reduce((sum, item) => sum + parseQuantity(item.quantity), 0);
       const productionStock = filteredProduction.reduce((sum, p) => sum + p.quantity, 0);
       const totalStock = inventoryStock + productionStock;
-      const healthyCount = items.filter(item => item.quantity > (item.criticalStock ?? 5)).length;
-      const criticalItems = items.filter(item => item.quantity <= (item.criticalStock ?? 5)).sort((a, b) => a.quantity - b.quantity);
-      const outOfStock = items.filter(item => item.quantity === 0);
+      const healthyCount = items.filter(item => parseQuantity(item.quantity) > (item.criticalStock ?? 5)).length;
+      const criticalItems = items.filter(item => { const q = parseQuantity(item.quantity); return q > 0 && q <= (item.criticalStock ?? 5); }).sort((a, b) => parseQuantity(a.quantity) - parseQuantity(b.quantity));
+      const outOfStock = items.filter(item => parseQuantity(item.quantity) === 0);
 
       const categoryTotals = items.reduce<Record<string, number>>((acc, item) => {
-        acc[item.category] = (acc[item.category] ?? 0) + item.quantity;
+        acc[item.category] = (acc[item.category] ?? 0) + parseQuantity(item.quantity);
         return acc;
       }, {});
 
-      const highestStock = items.length ? items.reduce((a, b) => (a.quantity >= b.quantity ? a : b)) : null;
-      const lowestStock = items.length ? items.reduce((a, b) => (a.quantity <= b.quantity ? a : b)) : null;
+      const highestStock = items.length ? items.reduce((a, b) => (parseQuantity(a.quantity) >= parseQuantity(b.quantity) ? a : b)) : null;
+      const lowestStock = items.length ? items.reduce((a, b) => (parseQuantity(a.quantity) <= parseQuantity(b.quantity) ? a : b)) : null;
       const averageStock = items.length ? totalStock / items.length : 0;
 
       const prodByCategory = filteredProduction.reduce<Record<string, number>>((acc, p) => {

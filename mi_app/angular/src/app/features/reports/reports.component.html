@@ -151,7 +151,7 @@
           <div class="item__icon"><span class="material-symbols-outlined">warning</span></div>
           <div>
             <strong>{{ item.name }}</strong>
-            <span>Quedan {{ item.quantity }} unidades</span>
+            <span>Quedan {{ item.quantity }}{{ item.unit ? ' ' + item.unit : '' }}</span>
             <small>Mín: {{ item.minStock }} · Crítico: {{ item.criticalStock }}</small>
           </div>
           <span class="badge">Reponer</span>
@@ -166,14 +166,14 @@
           <span class="material-symbols-outlined">trending_up</span>
           <div>
             <strong>Mayor stock</strong>
-            <span>{{ vm.highestStock ? vm.highestStock.name + ' (' + vm.highestStock.quantity + ' unidades)' : 'Sin datos' }}</span>
+            <span>{{ vm.highestStock ? vm.highestStock.name + ' (' + vm.highestStock.quantity + (vm.highestStock.unit ? ' ' + vm.highestStock.unit : '') + ')' : 'Sin datos' }}</span>
           </div>
         </div>
         <div class="summary-row">
           <span class="material-symbols-outlined">trending_down</span>
           <div>
             <strong>Menor stock</strong>
-            <span>{{ vm.lowestStock ? vm.lowestStock.name + ' (' + vm.lowestStock.quantity + ' unidades)' : 'Sin datos' }}</span>
+            <span>{{ vm.lowestStock ? vm.lowestStock.name + ' (' + vm.lowestStock.quantity + (vm.lowestStock.unit ? ' ' + vm.lowestStock.unit : '') + ')' : 'Sin datos' }}</span>
           </div>
         </div>
         <div class="summary-row">

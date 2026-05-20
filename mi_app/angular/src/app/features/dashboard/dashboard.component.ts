@@ -7,7 +7,7 @@ import { BaseChartDirective } from 'ng2-charts';
 import { ChartOptions, ChartData } from 'chart.js';
 import { DataService } from '../../core/services/data.service';
 import { Production } from '../../core/models/harvest.model';
-import { InventoryItem } from '../../core/models/inventory-item.model';
+import { InventoryItem, parseQuantity } from '../../core/models/inventory-item.model';
 import { Reminder } from '../../core/models/reminder.model';
 import { Loss } from '../../core/models/loss.model';
 import { QuantityFormatPipe } from '../../shared/pipes/quantity-format.pipe';
@@ -122,11 +122,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
         .reduce((sum, l) => sum + l.quantity, 0);
 
       const criticalItems = inventory
-        .filter((item: InventoryItem) => item.quantity <= (item.criticalStock ?? 5))
-        .sort((a: InventoryItem, b: InventoryItem) => a.quantity - b.quantity);
+        .filter((item: InventoryItem) => { const q = parseQuantity(item.quantity); return q > 0 && q <= (item.criticalStock ?? 5); })
+        .sort((a: InventoryItem, b: InventoryItem) => parseQuantity(a.quantity) - parseQuantity(b.quantity));
 
       const zeroStockItems = inventory
-        .filter((item: InventoryItem) => item.quantity === 0);
+        .filter((item: InventoryItem) => parseQuantity(item.quantity) === 0);
 
       const recentProduction = production
         .slice(0, 3)
@@ -136,7 +136,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
       const stockByCategoryMap = inventory.reduce((acc, item: InventoryItem) => {
         const current = acc.get(item.category) ?? 0;
-        acc.set(item.category, current + item.quantity);
+        acc.set(item.category, current + parseQuantity(item.quantity));
         return acc;
       }, new Map<string, number>());
 
@@ -147,7 +147,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       const maxCategoryTotal = stockByCategory.reduce((max, stat) => Math.max(max, stat.total), 0);
 
       const topInventoryItems = [...inventory]
-        .sort((a: InventoryItem, b: InventoryItem) => b.quantity - a.quantity)
+        .sort((a: InventoryItem, b: InventoryItem) => parseQuantity(b.quantity) - parseQuantity(a.quantity))
         .slice(0, 5);
 
       return {
@@ -155,7 +155,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         totalProductionQuantity: production.reduce((sum: number, p: Production) => sum + p.quantity, 0),
         totalLossQuantityThisMonth,
         inventoryCount: inventory.length,
-        healthyInventory: inventory.filter((item: InventoryItem) => item.quantity > (item.criticalStock ?? 5)).length,
+        healthyInventory: inventory.filter((item: InventoryItem) => parseQuantity(item.quantity) > (item.criticalStock ?? 5)).length,
         criticalItems,
         zeroStockItems,
         recentProduction,
@@ -206,9 +206,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
           ]
         };
 
-        const enStock = inventory.filter(i => i.quantity > (i.criticalStock ?? 5)).length;
-        const bajoStock = inventory.filter(i => i.quantity > 0 && i.quantity <= (i.criticalStock ?? 5)).length;
-        const agotado = inventory.filter(i => i.quantity === 0).length;
+        const enStock = inventory.filter(i => parseQuantity(i.quantity) > (i.criticalStock ?? 5)).length;
+        const bajoStock = inventory.filter(i => { const q = parseQuantity(i.quantity); return q > 0 && q <= (i.criticalStock ?? 5); }).length;
+        const agotado = inventory.filter(i => parseQuantity(i.quantity) === 0).length;
 
         this.doughnutChartData = {
           labels: ['En stock', 'Bajo stock', 'Agotado'],

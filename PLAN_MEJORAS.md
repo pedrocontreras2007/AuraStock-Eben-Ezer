@@ -1,249 +1,170 @@
-# PLAN DE MEJORAS — AURASTØCK PARA EBEN EZER
+# PLAN DE REDISEÑO FRONTEND — EBEN EZER
 
 > Generado: 19/05/2026
-> Objetivo: Adaptar plataforma a Eben Ezer (churrería, Coquimbo), priorizando uso móvil y exportaciones rápidas.
+> Objetivo: Unificar look & feel, paleta cálida 100%, eliminar CSS muerto, pulir responsive y micro-interacciones.
 
 ---
 
-## ESTADO ACTUAL
+## DIAGNÓSTICO
 
-| Aspecto | Estado |
-|---|---|
-| Login (multi-tenant + JWT) | ✅ |
-| Inventario (97 items, 5 categorías) | ✅ |
-| Dashboard (KPI, charts, calendario) | ✅ |
-| Producción | 🟡 Vacía (sin datos) |
-| Alertas de stock | ✅ |
-| Mermas | ✅ (código SVG chart muerto) |
-| Reportes | ✅ |
-| Diseño responsive | 🟡 Parcial — sin menú colapsable |
-| UX diálogos | ⚠️ Usa `window.prompt()` y `window.confirm()` |
-| Branding | 🟡 Genérico (AuraStøck), sin identidad Eben Ezer |
+La app está "a medio pintar": login y layout usan la nueva paleta cálida (ocre/café/crema), pero el resto de componentes (Dashboard, Mermas, Alertas, Reportes, Harvest, Modal, Toast) siguen con los colores verde/azul originales. Además hay CSS muerto, secciones sin estilos y brechas responsive.
+
+**Puntaje estético actual: 2.3 / 5**
 
 ---
 
-## FASE 1 — UX CRÍTICA
+## PALETA OBJETIVO
 
-### 1.1 Modal reutilizable
-- Crear `shared/components/modal.component.ts` (Angular standalone)
-- Reemplazar `window.prompt()` en `adjustQuantity()` del inventario
-- Reemplazar `window.confirm()` en losses
-- Agregar confirmación en harvest (hoy no tiene)
-- 🗂️ `inventory.component.ts`, `losses.component.ts`, `harvest.component.ts`
-
-### 1.2 Botón eliminar en inventario
-- Crear método `deleteInventoryItem()` en `data.service.ts`
-- Botón "Eliminar" con confirmación modal en cada item
-- 🗂️ `inventory.component.html`, `inventory.component.ts`, `data.service.ts`
-
-### 1.3 Eliminar código SVG muerto en Losses
-- ~40 líneas de TS que arman un SVG chart no renderizado
-- 🗂️ `losses.component.ts`
-
-### 1.4 Limpiar CSS muerto
-- Clases sin uso en template: `summary-grid`, `profit-chart`, `profit`, `harvest-insights`, `badge__safe`
-- 🗂️ `dashboard.component.css`, `reports.component.css`, `stock-alerts.component.css`
+```css
+--ee-primary: #8B4513;       /* Café principal */
+--ee-primary-dark: #5C2E0B;  /* Café oscuro */
+--ee-accent: #D2691E;        /* Ocre / naranja quemado */
+--ee-cream: #FFF8F0;         /* Fondo crema */
+--ee-cream-dark: #F5E6D0;    /* Crema oscuro / borde */
+--ee-text: #3E2505;          /* Texto café oscuro */
+```
 
 ---
 
-## FASE 2 — MOBILE + BRANDING
+## FASE 1 — UNIFICAR PALETA CÁLIDA
 
-### 2.1 Navegación mobile-first
-- `< 768px`: bottom navigation bar fija (5 iconos: Panel, Prod, Inv, Alertas, Mermas)
-- Ocultar header en móvil, logo minimalista
-- 🗂️ `main-layout.component.html`, `main-layout.component.css`
-
-### 2.2 Calendario responsive
-- Móvil: celdas de 90px → 48px, ocultar textos
+### 1.1 Dashboard
+- Reemplazar `#1565c0` → `var(--ee-accent)` en toda la hoja
+- Reemplazar `#2e7d32` → `var(--ee-primary)`
+- Reemplazar `#0f172a` → `var(--ee-text)`
+- Actualizar gradients de barras y fondos de cards
 - 🗂️ `dashboard.component.css`
 
-### 2.3 Branding Eben Ezer
-- Logo propio, paleta cálida (ocre, café, crema), favicon
-- 🗂️ `login.component.*`, `main-layout.component.*`, `styles.css`, `index.html`
+### 1.2 Losses / Mermas
+- Migrar todos los colores a variables CSS
+- Eliminar ~84 líneas de SVG donut chart muerto
+- 🗂️ `losses.component.css`
 
-### 2.4 Ajustes responsive generales
-- 360-480px: forms full-width, botones 44px+, tablas con scroll-x
-- 🗂️ Todos los componentes (revisar media queries existentes)
+### 1.3 Stock Alerts
+- Migrar a paleta cálida
+- Agregar `.badge__low` que falta en CSS
+- 🗂️ `stock-alerts.component.css`
 
----
+### 1.4 Harvest / Producción
+- Migrar colores restantes (iconos, fondos list item)
+- Agregar estilo para `.btn-delete`
+- 🗂️ `harvest.component.css`
 
-## FASE 3 — UX MEJORAS
+### 1.5 Reports
+- Migrar metric cards, chips, summary, empty state
+- 🗂️ `reports.component.css`
 
-### 3.1 Skeleton loading
-- `loading$` en DataService, skeleton cards mientras carga
-- 🗂️ `data.service.ts` + todos los componentes
+### 1.6 Modal
+- Botón confirmar: rojo `#c0392b` → `var(--ee-accent)`
+- Input focus: rojo → `var(--ee-accent)`
+- Cancelar: gris → `var(--ee-cream-dark)`
+- 🗂️ `modal.component.css`
 
-### 3.2 Toast notificaciones
-- Servicio + componente toast (éxito verde, error rojo)
-- Reemplazar `error: () => {}` silenciosos
-- 🗂️ `shared/components/toast.component.ts`, `data.service.ts`
-
-### 3.3 Búsqueda por nombre en inventario
-- Input de texto junto al filtro de categoría
-- Filtrar por `item.name.toLowerCase().includes(query)`
-- 🗂️ `inventory.component.html`, `inventory.component.ts`
-
-### 3.4 Modal edición completa inventario
-- Nombre, cantidad, unidad, categoría, stock mínimo, stock crítico
-- PUT completo del item al guardar
-- 🗂️ `inventory.component.ts`, `inventory.component.html`
-
----
-
-## FASE 3.5 — EXPORTACIONES (ALTA PRIORIDAD)
-
-### 3.5 Botón "Enviar pedido por WhatsApp" (TXT)
-
-**Ubicación:** Inventario + Alertas
-
-**Formato del texto generado:**
-```
-🧾 EBEN EZER — PEDIDO DE INSUMOS
-📅 19/05/2026
-
-❌ AGOTADOS:
-• Leche condensada — 0 unidades
-
-⚠️ STOCK CRÍTICO:
-• Aceite — 3 litros (mín: 20)
-
-🔄 STOCK BAJO:
-• Vasos café chicos — 0 uni (mín: 100)
-```
-
-**Flujo:**
-1. Botón "📱 Pedido WhatsApp"
-2. Genera texto con items agotados → críticos → bajo stock
-3. Copia al portapapeles automáticamente
-4. Toast: "✅ Texto copiado — pégalo en WhatsApp"
-5. Opcional: `<textarea>` para revisar antes de copiar
-
-**Lógica de filtrado:**
-- `quantity === 0` → AGOTADOS
-- `quantity <= criticalStock` → CRÍTICO
-- `quantity <= minStock` → STOCK BAJO
-- Solo items de categoría `insumo` y `relleno`
-
-**Archivos:**
-- `shared/services/export.service.ts` (NUEVO)
-- `inventory.component.html` → botón
-- `inventory.component.ts` → llamar servicio
-- `inventory.component.css` → estilo botón
-
-### 3.6 Exportar a Excel (XLSX)
-
-**Ubicación:** Inventario + Reportes
-
-**Columnas del archivo:**
-
-| Producto | Categoría | Cantidad | Unidad | Stock Mín | Stock Crít | Estado | Faltante |
-|---|---|---|---|---|---|---|---|
-
-**Faltante =** `max(0, minStock - quantity)`
-
-**Implementación:**
-```bash
-npm install xlsx
-```
-
-- Método `downloadExcel(items, filename)` en `export.service.ts`
-- Botón "📥 Descargar Excel" que descarga el `.xlsx`
-- En Reportes: Excel con resumen general + inventario completo
-
-**Archivos:**
-- `shared/services/export.service.ts`
-- `inventory.component.html` → botón Excel
-- `reports.component.html` → botón Excel resumen
+### 1.7 Toast
+- Migrar de inline styles a CSS variables
+- Éxito: `var(--ee-primary)`, Error: `#b71c1c`
+- 🗂️ `toast.component.ts`
 
 ---
 
-## FASE 4 — POLISH
+## FASE 2 — CSS MUERTO Y SECCIONES SIN ESTILO
 
-### 4.1 Página de producción
-- Estado vacío amigable con instrucciones
-- 🗂️ `harvest.component.*`
+### 2.1 Dashboard
+- Eliminar `.summary-card` duplicado (líneas 45-53, 552-589)
+- Eliminar `.action-card` icon colors legacy (líneas 740-759)
+- Agregar `.dashboard__zero-stock` (template lo usa, CSS no existe)
+- 🗂️ `dashboard.component.css`
 
-### 4.2 Componentes compartidos
-- `app-button`, `app-card`, `app-empty-state`, `app-modal`
-- 🗂️ `shared/components/*`
+### 2.2 Reports
+- Agregar estilos para `.production-insights-*` (hoy sin CSS, renderizan raw HTML)
+- 🗂️ `reports.component.css`
 
-### 4.3 Exportar reportes (PDF/CSV)
-- Botón "Exportar CSV" simple
-- 🗂️ `reports.component.*`
+### 2.3 Login
+- Agregar `.tenant-btn`, `.tenant-list`, `.tenant-icon`, `.back-btn` (hoy sin estilo)
+- 🗂️ `login.component.css`
 
-### 4.4 Filtros por rango de fechas
-- Inputs desde/hasta en reportes y mermas
-- 🗂️ `reports.component.*`, `losses.component.*`
+### 2.4 Stock Alerts
+- Agregar `.badge__low` (template lo usa, CSS no existe)
+- Eliminar sombra pesada `0 20px 40px` de list items
+- 🗂️ `stock-alerts.component.css`
 
----
-
-## CRONOGRAMA (13 días)
-
-```
-Día 1  → 1.1 Modal reutilizable + reemplazar prompt/confirm ✅
-Día 2  → 1.2 Botón eliminar inventario ✅
-Día 3  → 1.3 + 1.4 Limpiar código muerto ✅
-Día 4  → 2.1 Nav mobile + bottom bar ✅
-Día 5  → 2.2 Calendario + 2.4 Ajustes responsive ✅
-Día 6  → 2.3 Branding Eben Ezer ✅
-Día 7  → 3.1 Skeleton loading (loading$ en DataService) ✅
-Día 8  → 3.2 Toast notificaciones ✅
-Día 9  → 3.5 WhatsApp TXT ← ALTA ✅
-Día 10 → 3.6 Excel XLSX ← ALTA ✅
-Día 11 → 3.3 Búsqueda + 3.4 Modal edición (ajuste) ✅
-Día 12 → 4.1 Producción (empty state) + 4.2 Componentes compartidos (modal/toast) ✅
-Día 13 → 4.3 Exportar reportes (Excel) + 4.4 Filtros fecha ✅
-```
+### 2.5 Inventory
+- Agregar `.out-of-stock` class CSS (template lo usa)
+- 🗂️ `inventory.component.css`
 
 ---
 
-## ARCHIVOS A CREAR
+## FASE 3 — MOBILE POLISH
+
+### 3.1 Breakpoint 480px
+- Agregar `@media (max-width: 480px)` en cada componente
+- Forms: padding más grande en inputs para touch
+- Cards: padding reducir de 2rem → 1.25rem
+- Tablas: scroll-x forzado (hoy solo global)
+
+### 3.2 Bottom bar
+- Texto: 0.6rem → 0.7rem
+- Iconos: 1.3rem → 1.4rem
+- Active indicator: barra superior en vez de solo color
+
+### 3.3 Modal responsive
+- En móvil: 92% width, padding reducido
+- Botones full-width apilados
+
+### 3.4 Calendar mobile
+- En vez de ocultar eventos, mostrar círculo indicador (•)
+- 🗂️ `dashboard.component.css`
+
+---
+
+## FASE 4 — MICRO-INTERACCIONES Y POLISH
+
+### 4.1 Global
+- Agregar `box-sizing: border-box` en `styles.css`
+- Unificar `transition: 0.2s ease` en todos los interactive elements
+
+### 4.2 Toast mejorado
+- Sombra + slide animation
+- Auto-focus dismiss
+- Soporte para cola de toasts
+
+### 4.3 Modal mejorado
+- Auto-focus en input al abrir
+- Cerrar con tecla Escape
+- Trap focus dentro del modal
+
+### 4.4 Dashboard KPIs
+- Tooltips suaves en hover
+- Iconos decorativos con color brand
+
+### 4.5 List items
+- Hover con escala sutil (transform: scale(1.01))
+- Transición en background
+
+---
+
+## CRONOGRAMA ESTIMADO
 
 ```
-shared/services/export.service.ts          → WhatsApp TXT + Excel XLSX
-shared/components/modal.component.ts       → Modal reutilizable
-shared/components/modal.component.html
-shared/components/modal.component.css
-shared/components/toast.component.ts       → Toast notificaciones
-shared/components/toast.component.html
-shared/components/toast.component.css
-shared/components/empty-state.component.ts → Estado vacío unificado
-shared/components/empty-state.component.html
-shared/components/empty-state.component.css
+Fase 1 — Unificar paleta       ~3h
+Fase 2 — CSS muerto + faltante  ~2h
+Fase 3 — Mobile polish          ~1.5h
+Fase 4 — Micro-interacciones    ~1.5h
+Total                          ~8h (~1 día)
 ```
 
 ## ARCHIVOS A MODIFICAR
 
-| Archivo | Cambios |
+| Archivo | Fases |
 |---|---|
-| `inventory.component.ts` | Modal prompt, delete, búsqueda, WhatsApp, Excel |
-| `inventory.component.html` | Botones WhatsApp + Excel + eliminar + buscador |
-| `inventory.component.css` | Estilos nuevos |
-| `losses.component.ts` | Eliminar SVG chart muerto |
-| `harvest.component.ts` | Confirmación delete |
-| `main-layout.component.html` | Bottom nav mobile |
-| `main-layout.component.css` | Estilos nav |
-| `dashboard.component.css` | CSS muerto, calendario mobile |
-| `reports.component.ts` | Excel + filtros |
-| `reports.component.css` | CSS muerto |
-| `stock-alerts.component.css` | CSS muerto |
-| `login.component.*` | Branding |
-| `data.service.ts` | deleteInventoryItem, loading state |
-| `styles.css` | Variables color Eben Ezer |
-| `index.html` | Favicon, título |
-
----
-
-## NOTAS TÉCNICAS
-
-| Área | Stack |
-|---|---|
-| Frontend | Angular 18 standalone, RxJS, Router lazy |
-| Backend | Node + Express 5, JWT auth |
-| DB | TiDB Cloud (MySQL compatible) |
-| Deploy | Render (API) + Vercel (frontend) |
-| Íconos | Material Symbols Outlined |
-| Charts | ng2-charts (Chart.js) |
-| Estilos | CSS plano con BEM (sin Tailwind/SCSS) |
-| Excel | SheetJS (`npm install xlsx`) |
-| WhatsApp | Solo clipboard API (nativa del browser) |
+| `dashboard.component.css` | 1.1, 2.1, 3.4, 4.4, 4.5 |
+| `losses.component.css` | 1.2 |
+| `stock-alerts.component.css` | 1.3, 2.4 |
+| `harvest.component.css` | 1.4 |
+| `reports.component.css` | 1.5, 2.2 |
+| `modal.component.css` | 1.6, 3.3, 4.3 |
+| `toast.component.ts` | 1.7, 4.2 |
+| `login.component.css` | 2.3 |
+| `inventory.component.css` | 2.5, 4.5 |
+| `styles.css` | 4.1 |
+| `main-layout.component.css` | 3.2 |

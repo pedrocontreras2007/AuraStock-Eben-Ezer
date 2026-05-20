@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 const mapInventoryRow = (row) => ({
     id: row.id,
     name: row.name,
-    quantity: Number(row.quantity) || 0,
+    quantity: String(row.quantity ?? ''),
     unit: row.unit,
     category: row.category,
     minStock: row.min_stock ?? 10,

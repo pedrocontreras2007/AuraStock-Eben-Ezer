@@ -3,8 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { combineLatest, map, startWith } from 'rxjs';
 import { DataService } from '../../core/services/data.service';
-import { Loss, LossSource } from '../../core/models/loss.model';
-import { QuantityFormatPipe } from '../../shared/pipes/quantity-format.pipe';
+import { InventoryItem, parseQuantity } from '../../core/models/inventory-item.model';
 import { Production } from '../../core/models/harvest.model';
 import { InventoryItem } from '../../core/models/inventory-item.model';
 import { AuthService } from '../../core/services/auth.service';
@@ -22,6 +21,7 @@ interface LossProductOption {
   readonly stock: number;
   readonly source: LossSource;
   readonly description: string;
+  readonly displayQty: string;
 }
 
 interface LossProductSelection {
@@ -29,6 +29,7 @@ interface LossProductSelection {
   readonly id: string;
   readonly name: string;
   readonly stock: number;
+  readonly displayQty: string;
 }
 
 @Component({
@@ -163,7 +164,7 @@ export class LossesComponent {
       if (loss.sourceType === 'inventory' && loss.sourceId) {
         const item = inventoryMap.get(loss.sourceId);
         sourceLabel = item ? `Inventario · ${item.category}` : 'Inventario';
-        remainingStock = item?.quantity ?? null;
+        remainingStock = item ? parseQuantity(item.quantity) : null;
       } else if (loss.sourceType === 'produccion' && loss.sourceId) {
         const prod = productionMap.get(loss.sourceId);
         sourceLabel = prod ? `Producción · ${prod.category}` : 'Producción';
@@ -175,11 +176,11 @@ export class LossesComponent {
 
   private buildAvailableProducts(production: Production[], inventory: InventoryItem[]): LossProductOption[] {
     const inventoryOptions: LossProductOption[] = inventory
-      .filter(item => item.quantity > 0)
-      .map(item => ({ ref: `inventory:${item.id}`, name: item.name, stock: item.quantity, source: 'inventory', description: `Inventario · ${item.category}` }));
+      .filter(item => parseQuantity(item.quantity) > 0)
+      .map(item => ({ ref: `inventory:${item.id}`, name: item.name, stock: parseQuantity(item.quantity), source: 'inventory', description: `Inventario · ${item.category}`, displayQty: item.quantity }));
     const productionOptions: LossProductOption[] = production
       .filter(p => p.quantity > 0)
-      .map(p => ({ ref: `produccion:${p.id}`, name: p.productName, stock: p.quantity, source: 'produccion', description: `Producción · ${p.category}` }));
+      .map(p => ({ ref: `produccion:${p.id}`, name: p.productName, stock: p.quantity, source: 'produccion', description: `Producción · ${p.category}`, displayQty: String(p.quantity) }));
     return [...inventoryOptions, ...productionOptions].sort((a, b) => a.name.localeCompare(b.name, 'es-CL', { sensitivity: 'base' }));
   }
 
@@ -189,11 +190,11 @@ export class LossesComponent {
     if (!source || !id) return null;
     if (source === 'inventory') {
       const item = this.data.inventorySnapshot.find(e => e.id === id);
-      return item ? { source: 'inventory', id, name: item.name, stock: item.quantity } : null;
+      return item ? { source: 'inventory', id, name: item.name, stock: parseQuantity(item.quantity), displayQty: item.quantity } : null;
     }
     if (source === 'produccion') {
       const prod = this.data.productionSnapshot.find(e => e.id === id);
-      return prod ? { source: 'produccion', id, name: prod.productName, stock: prod.quantity } : null;
+      return prod ? { source: 'produccion', id, name: prod.productName, stock: prod.quantity, displayQty: String(prod.quantity) } : null;
     }
     return null;
   }

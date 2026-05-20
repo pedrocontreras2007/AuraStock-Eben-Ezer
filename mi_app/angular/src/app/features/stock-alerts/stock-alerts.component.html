@@ -39,7 +39,7 @@
           </div>
           <div class="item__body">
             <strong>{{ item.name }}</strong>
-            <span>{{ item.quantity }} {{ item.unit }} disponibles</span>
+            <span>{{ item.quantity }}{{ item.unit ? ' ' + item.unit : '' }}</span>
             <small>Categoría: {{ item.category }}</small>
             <small>Stock mínimo: {{ item.minStock }} · Crítico: {{ item.criticalStock }}</small>
           </div>

@@ -19,11 +19,11 @@
             <select id="loss-product" formControlName="productRef" [disabled]="!vm.availableProducts.length">
               <option value="" disabled>Selecciona un producto</option>
               <option *ngFor="let product of vm.availableProducts" [value]="product.ref">
-                {{ product.name }} · {{ product.stock }} uds. · {{ product.description }}
+                {{ product.name }} · {{ product.displayQty }} · {{ product.description }}
               </option>
             </select>
             <small *ngIf="getProductOption(vm.availableProducts, form.controls.productRef.value) as selected">
-              Stock disponible: {{ selected.stock }} uds.
+              Stock disponible: {{ selected.displayQty }}
             </small>
           </div>
           <div class="losses__field">

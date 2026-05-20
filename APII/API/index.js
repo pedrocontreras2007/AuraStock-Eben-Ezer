@@ -85,11 +85,22 @@ const initServer = () => {
         res.status(200).json({ message: "AuraStøck API funcionando" });
     });
 
-    server.listen(port, host, () => {
+    server.listen(port, host, async () => {
         console.log(`AuraStøck API en ${host}:${port}`);
         const envRaw = process.env.ALLOWED_ORIGINS || '(no definido)';
         const corsMsg = allowAll ? '*' : (allowedOrigins.join(', ') || envRaw);
         console.log(`CORS permitido para: ${corsMsg}`);
+
+        // Migración: quantity pasa a TEXT para admitir descripciones como "5 botellas y media"
+        try {
+            const mig = await db.mysqlquery(
+                `ALTER TABLE inventory_items MODIFY COLUMN quantity VARCHAR(100) NOT NULL DEFAULT '0'`
+            );
+            if (mig.success) console.log('✓ Migración quantity → VARCHAR(100) OK');
+            else console.warn('⚠ Migración quantity:', mig.error);
+        } catch (e) {
+            console.warn('⚠ Migración quantity (no crítica):', e.message);
+        }
     });
 };
 

@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
 import * as XLSX from 'xlsx';
-import { InventoryItem } from '../../core/models/inventory-item.model';
+import { InventoryItem, parseQuantity } from '../../core/models/inventory-item.model';
 
 export interface WhatsAppSection {
   title: string;
   icon: string;
-  items: { name: string; quantity: number; unit: string }[];
+  items: { name: string; quantity: string; unit: string }[];
 }
 
 @Injectable({ providedIn: 'root' })
@@ -29,16 +29,19 @@ export class ExportService {
   }
 
   downloadExcel(items: InventoryItem[], filename: string): void {
-    const data = items.map(item => ({
-      Producto: item.name,
-      Categoría: item.category,
-      Cantidad: item.quantity,
-      Unidad: item.unit,
-      'Stock Mín': item.minStock ?? 10,
-      'Stock Crít': item.criticalStock ?? 5,
-      Estado: item.quantity === 0 ? 'Agotado' : item.quantity <= (item.criticalStock ?? 5) ? 'Crítico' : item.quantity <= (item.minStock ?? 10) ? 'Bajo' : 'Normal',
-      Faltante: Math.max(0, (item.minStock ?? 10) - item.quantity)
-    }));
+    const data = items.map(item => {
+      const q = parseQuantity(item.quantity);
+      return {
+        Producto: item.name,
+        Categoría: item.category,
+        Cantidad: item.quantity,
+        Unidad: item.unit,
+        'Stock Mín': item.minStock ?? 10,
+        'Stock Crít': item.criticalStock ?? 5,
+        Estado: q === 0 ? 'Agotado' : q <= (item.criticalStock ?? 5) ? 'Crítico' : q <= (item.minStock ?? 10) ? 'Bajo' : 'Normal',
+        Faltante: Math.max(0, (item.minStock ?? 10) - q)
+      };
+    });
     const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Inventario');
