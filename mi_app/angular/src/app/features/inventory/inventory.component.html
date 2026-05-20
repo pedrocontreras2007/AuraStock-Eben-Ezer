@@ -1,7 +1,7 @@
 <div class="inventory">
   <section class="inventory__form">
-    <h2>Inventario</h2>
-    <p>Gestiona insumos y existencias de manera centralizada.</p>
+    <h2>{{ isEditing ? 'Ajustar Insumo' : 'Inventario' }}</h2>
+    <p>{{ isEditing ? 'Estás editando: ' + editingItem?.name : 'Gestiona insumos y existencias de manera centralizada.' }}</p>
 
     <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
       <div class="field">

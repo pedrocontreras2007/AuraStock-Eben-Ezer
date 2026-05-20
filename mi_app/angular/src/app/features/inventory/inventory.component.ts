@@ -149,6 +149,9 @@ export class InventoryComponent {
       criticalStock: String(item.criticalStock ?? 5),
       inventoryDate: item.inventoryDate || this.todayISODate
     });
+    
+    // Al hacer click en ajustar, hacemos scroll hacia arriba para ver el formulario
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   cancelEdit(): void {
