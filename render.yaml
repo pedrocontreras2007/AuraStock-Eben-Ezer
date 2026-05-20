@@ -2,7 +2,7 @@ services:
   - type: web
     name: aurastock-api
     runtime: node
-    repo: https://github.com/pedrocontreras2007/angular_floricoop.git
+    repo: https://github.com/pedrocontreras2007/AuraStock-Eben-Ezer.git
     plan: free
     region: oregon
     buildCommand: npm install
