@@ -58,6 +58,11 @@ export class InventoryComponent {
   });
 
   readonly categories: { value: InventoryCategory; label: string }[] = [
+    { value: 'insumo', label: '📦 Insumo (anterior)' },
+    { value: 'relleno', label: '📦 Relleno (anterior)' },
+    { value: 'empaque', label: '📦 Empaque (anterior)' },
+    { value: 'utensilio', label: '📦 Utensilio (anterior)' },
+    { value: 'otro', label: '📦 Otro (anterior)' },
     { value: 'materia_prima', label: 'Materia Prima' },
     { value: 'salsas_gourmet', label: 'Salsas gourmet' },
     { value: 'bebestibles', label: 'Bebestibles' },
