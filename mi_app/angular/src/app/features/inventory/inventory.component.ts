@@ -67,11 +67,13 @@ export class InventoryComponent {
   ];
 
   readonly categoryLabels: Record<string, string> = {
+    insumo: 'Insumo', relleno: 'Relleno', empaque: 'Empaque', utensilio: 'Utensilio', otro: 'Otro',
     materia_prima: 'Materia Prima', salsas_gourmet: 'Salsas gourmet', bebestibles: 'Bebestibles',
     materiales_desechables: 'Materiales desechables', frutas: 'Frutas', utiles_aseo: 'Útiles de aseo'
   };
 
   readonly categoryIcons: Record<string, string> = {
+    insumo: 'bakery_dining', relleno: 'inventory_2', empaque: 'inventory_2', utensilio: 'handyman', otro: 'cleaning_services',
     materia_prima: 'bakery_dining', salsas_gourmet: 'lunch_dining', bebestibles: 'local_cafe',
     materiales_desechables: 'inventory_2', frutas: 'spa', utiles_aseo: 'cleaning_services'
   };

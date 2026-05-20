@@ -102,10 +102,10 @@ const initServer = () => {
             console.warn('⚠ Migración quantity (no crítica):', e.message);
         }
 
-        // Migración: categorías actualizadas
+        // Migración: categorías actualizadas (se añaden las nuevas sin eliminar las viejas para no romper datos existentes)
         try {
             const migCat = await db.mysqlquery(
-                `ALTER TABLE inventory_items MODIFY COLUMN category ENUM('materia_prima','salsas_gourmet','bebestibles','materiales_desechables','frutas','utiles_aseo') NOT NULL DEFAULT 'materia_prima'`
+                `ALTER TABLE inventory_items MODIFY COLUMN category ENUM('insumo','relleno','empaque','utensilio','otro','materia_prima','salsas_gourmet','bebestibles','materiales_desechables','frutas','utiles_aseo') NOT NULL DEFAULT 'materia_prima'`
             );
             if (migCat.success) console.log('✓ Migración categorías OK');
             else console.warn('⚠ Migración categorías:', migCat.error);

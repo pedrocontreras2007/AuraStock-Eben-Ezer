@@ -11,6 +11,7 @@ export interface WhatsAppSection {
 @Injectable({ providedIn: 'root' })
 export class ExportService {
   readonly categoryLabels: Record<string, string> = {
+    insumo: 'Insumo', relleno: 'Relleno', empaque: 'Empaque', utensilio: 'Utensilio', otro: 'Otro',
     materia_prima: 'Materia Prima', salsas_gourmet: 'Salsas gourmet', bebestibles: 'Bebestibles',
     materiales_desechables: 'Materiales desechables', frutas: 'Frutas', utiles_aseo: 'Útiles de aseo'
   };
