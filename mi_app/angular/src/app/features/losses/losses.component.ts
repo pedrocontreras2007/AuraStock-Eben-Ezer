@@ -5,9 +5,10 @@ import { combineLatest, map, startWith } from 'rxjs';
 import { DataService } from '../../core/services/data.service';
 import { InventoryItem, parseQuantity } from '../../core/models/inventory-item.model';
 import { Production } from '../../core/models/harvest.model';
-import { InventoryItem } from '../../core/models/inventory-item.model';
+import { Loss, LossSource } from '../../core/models/loss.model';
 import { AuthService } from '../../core/services/auth.service';
 import { ModalComponent } from '../../shared/components/modal.component';
+import { QuantityFormatPipe } from '../../shared/pipes/quantity-format.pipe';
 
 interface LossRowView {
   readonly loss: Loss;
