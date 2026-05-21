@@ -1,4 +1,4 @@
-export type InventoryCategory = 'insumo' | 'relleno' | 'empaque' | 'utensilio' | 'otro' | 'materia_prima' | 'salsas_gourmet' | 'bebestibles' | 'materiales_desechables' | 'frutas' | 'utiles_aseo';
+export type InventoryCategory = 'materia_prima' | 'salsas_gourmet' | 'bebestibles' | 'materiales_desechables' | 'frutas' | 'utiles_aseo';
 export type InventoryUnit = string;
 
 export interface InventoryItem {
