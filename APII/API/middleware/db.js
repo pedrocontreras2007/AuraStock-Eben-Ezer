@@ -15,6 +15,7 @@ export default class DB {
                 password: data.password,
                 database: data.database,
                 port: data.port,
+                timezone: '-04:00', // Ajuste a hora local (Ej. Chile)
                 waitForConnections: true,
                 connectionLimit: 10,
                 queueLimit: 0,
