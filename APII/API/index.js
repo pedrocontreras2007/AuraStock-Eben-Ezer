@@ -162,6 +162,18 @@ const initServer = () => {
             if (e.message?.includes('Duplicate column')) console.log('→ counted_at ya existe');
             else console.warn('⚠ Migración counted_at (no crítica):', e.message);
         }
+
+        // Auto-fix: Normalizar sort_order en 0 o nulos
+        try {
+            await db.mysqlquery(
+                `UPDATE inventory_items i
+                 JOIN (SELECT id, ROW_NUMBER() OVER (PARTITION BY category ORDER BY name ASC) AS rn FROM inventory_items) AS o
+                 ON i.id = o.id SET i.sort_order = o.rn WHERE i.sort_order = 0 OR i.sort_order IS NULL`
+            );
+            console.log('✓ Orden inicial normalizado para items sin orden');
+        } catch (e) {
+            console.warn('⚠ Auto-fix sort_order fallido:', e.message);
+        }
     });
 };
 

@@ -109,11 +109,13 @@ export default (db) => ({
         try {
             const cases = orders.map(() => 'WHEN ? THEN ?').join(' ');
             const ids = orders.flatMap(o => [o.id, o.sortOrder]);
-            const query = `UPDATE inventory_items SET sort_order = CASE id ${cases} END WHERE tenant_id = ?`;
-            const results = await db.mysqlquery(query, [...ids, tenantId]);
+            const idList = orders.map(o => o.id);
+            const query = `UPDATE inventory_items SET sort_order = CASE id ${cases} ELSE sort_order END WHERE tenant_id = ? AND id IN (${idList.map(() => '?').join(',')})`;
+            const results = await db.mysqlquery(query, [...ids, tenantId, ...idList]);
             if (!results.success) throw new Error(results.error);
             return { success: true, status: 200, error: null };
         } catch (error) {
+            console.error("Error al reordenar en BD:", error);
             return { success: false, status: 500, error: 'Error al reordenar productos' };
         }
     },
