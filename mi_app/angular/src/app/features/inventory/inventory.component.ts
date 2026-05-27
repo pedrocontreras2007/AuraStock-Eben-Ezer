@@ -298,10 +298,23 @@ export class InventoryComponent {
 
   sendWhatsApp(): void {
     const items = this.data.inventorySnapshot;
-    const text = this.exportSvc.generateWhatsAppText([
-      { title: 'AGOTADOS', icon: '❌', items: items.filter(i => parseQuantity(i.quantity) === 0) },
-      { title: 'EN STOCK', icon: '✅', items: items.filter(i => parseQuantity(i.quantity) > 0) }
-    ]);
+    
+    const sections = [
+      { title: 'AGOTADOS', icon: '❌', items: items.filter(i => parseQuantity(i.quantity) === 0) }
+    ];
+
+    this.categories.forEach(cat => {
+      const catItems = items.filter(i => i.category === cat.value && parseQuantity(i.quantity) > 0);
+      if (catItems.length > 0) {
+        sections.push({
+          title: cat.label.toUpperCase(),
+          icon: '✅',
+          items: catItems
+        });
+      }
+    });
+
+    const text = this.exportSvc.generateWhatsAppText(sections);
     navigator.clipboard.writeText(text).then(() => {
       this.toast.show({ message: 'Texto copiado — pégalo en WhatsApp', type: 'success' });
     });
