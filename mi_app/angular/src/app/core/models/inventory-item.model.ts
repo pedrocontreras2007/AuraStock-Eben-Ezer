@@ -14,6 +14,8 @@ export interface InventoryItem {
   recordedBy?: string;
   recordedByUser?: string | null;
   inventoryDate?: string | null;
+  sortOrder?: number;
+  countedAt?: string | null;
 }
 
 export type InventoryItemInput = Omit<InventoryItem, 'id' | 'tenantId' | 'branchId'>;

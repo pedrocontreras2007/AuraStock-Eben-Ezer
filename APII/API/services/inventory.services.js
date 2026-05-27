@@ -19,7 +19,9 @@ const mapInventoryRow = (row) => ({
     branchId: row.branch_id,
     recordedBy: row.recorded_by,
     recordedByUser: row.recorded_by_user ?? null,
-    inventoryDate: row.inventory_date || null
+    inventoryDate: row.inventory_date || null,
+    sortOrder: row.sort_order ?? 0,
+    countedAt: row.counted_at || null
 });
 
 export default (db) => ({
@@ -30,7 +32,7 @@ export default (db) => ({
             query += ' AND branch_id = ?';
             params.push(branchId);
         }
-        query += ' ORDER BY name ASC';
+        query += ' ORDER BY sort_order ASC, name ASC';
 
         try {
             const results = await db.mysqlquery(query, params);
@@ -45,12 +47,12 @@ export default (db) => ({
     async create(data, tenantId, branchId) {
         const id = uuidv4();
         const query = `INSERT INTO inventory_items 
-            (id, tenant_id, branch_id, name, quantity, unit, category, min_stock, critical_stock, recorded_by, recorded_by_user, inventory_date) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+            (id, tenant_id, branch_id, name, quantity, unit, category, sort_order, min_stock, critical_stock, recorded_by, recorded_by_user, inventory_date) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
         const values = [
             id, tenantId, branchId || null,
             data.name, data.quantity, data.unit || 'unidades',
-            data.category, data.minStock ?? 10, data.criticalStock ?? 5,
+            data.category, data.sortOrder ?? 0, data.minStock ?? 10, data.criticalStock ?? 5,
             data.recordedBy || null, data.recordedByUser || null,
             toDateValue(data.inventoryDate)
         ];
@@ -97,6 +99,60 @@ export default (db) => ({
             return { success, status: success ? 200 : 404, error: success ? null : 'Item no encontrado' };
         } catch (error) {
             return { success: false, status: 500, error: 'Error al eliminar item' };
+        }
+    },
+
+    async reorder(orders, tenantId) {
+        if (!Array.isArray(orders) || orders.length === 0) {
+            return { success: false, status: 400, error: 'Se requiere un array de órdenes' };
+        }
+        try {
+            const cases = orders.map(() => 'WHEN ? THEN ?').join(' ');
+            const ids = orders.flatMap(o => [o.id, o.sortOrder]);
+            const query = `UPDATE inventory_items SET sort_order = CASE id ${cases} END WHERE tenant_id = ?`;
+            const results = await db.mysqlquery(query, [...ids, tenantId]);
+            if (!results.success) throw new Error(results.error);
+            return { success: true, status: 200, error: null };
+        } catch (error) {
+            return { success: false, status: 500, error: 'Error al reordenar productos' };
+        }
+    },
+
+    async markCounted(id, tenantId) {
+        const query = 'UPDATE inventory_items SET counted_at = NOW() WHERE id = ? AND tenant_id = ?';
+        try {
+            const results = await db.mysqlquery(query, [id, tenantId]);
+            if (!results.success) throw new Error(results.error);
+            return { success: true, status: 200, error: null };
+        } catch (error) {
+            return { success: false, status: 500, error: 'Error al marcar producto como contado' };
+        }
+    },
+
+    async markUncounted(id, tenantId) {
+        const query = 'UPDATE inventory_items SET counted_at = NULL WHERE id = ? AND tenant_id = ?';
+        try {
+            const results = await db.mysqlquery(query, [id, tenantId]);
+            if (!results.success) throw new Error(results.error);
+            return { success: true, status: 200, error: null };
+        } catch (error) {
+            return { success: false, status: 500, error: 'Error al desmarcar producto' };
+        }
+    },
+
+    async resetCounts(tenantId, branchId) {
+        let query = 'UPDATE inventory_items SET counted_at = NULL WHERE tenant_id = ?';
+        const params = [tenantId];
+        if (branchId) {
+            query += ' AND branch_id = ?';
+            params.push(branchId);
+        }
+        try {
+            const results = await db.mysqlquery(query, params);
+            if (!results.success) throw new Error(results.error);
+            return { success: true, status: 200, error: null };
+        } catch (error) {
+            return { success: false, status: 500, error: 'Error al reiniciar conteo' };
         }
     }
 });

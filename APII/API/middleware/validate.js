@@ -38,6 +38,7 @@ export const inventorySchema = Joi.object({
     unit: Joi.string().trim().optional().allow(null, ''),
     minStock: Joi.number().min(0).optional().default(10),
     criticalStock: Joi.number().min(0).optional().default(5),
+    sortOrder: Joi.number().integer().min(0).optional(),
     recordedBy: Joi.string().trim().max(150).optional().allow(null, ''),
     recordedByUser: Joi.string().trim().email().optional().allow(null, ''),
     inventoryDate: Joi.string().isoDate().optional().allow(null, '')

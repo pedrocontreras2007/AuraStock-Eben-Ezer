@@ -64,6 +64,8 @@ CREATE TABLE IF NOT EXISTS inventory_items (
   quantity INT(11) NOT NULL DEFAULT 0,
   unit VARCHAR(20) NOT NULL DEFAULT 'unidades',
   category ENUM('materia_prima','salsas_gourmet','bebestibles','materiales_desechables','frutas','utiles_aseo') NOT NULL DEFAULT 'materia_prima',
+  sort_order INT DEFAULT 0,
+  counted_at TIMESTAMP NULL DEFAULT NULL,
   min_stock INT(11) DEFAULT 10,
   critical_stock INT(11) DEFAULT 5,
   recorded_by VARCHAR(40) DEFAULT NULL,

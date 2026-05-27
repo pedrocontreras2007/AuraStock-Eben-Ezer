@@ -141,6 +141,26 @@ export class DataService {
     });
   }
 
+  reorderInventory(orders: { id: string; sortOrder: number }[]): void {
+    this.http.put(`${this.API_URL}inventory/reorder`, { orders }, { headers: this.getAuthHeaders() })
+      .subscribe({ next: () => this.fetchInventory() });
+  }
+
+  markInventoryCounted(id: string): void {
+    this.http.post(`${this.API_URL}inventory/${id}/count`, {}, { headers: this.getAuthHeaders() })
+      .subscribe({ next: () => this.fetchInventory() });
+  }
+
+  markInventoryUncounted(id: string): void {
+    this.http.delete(`${this.API_URL}inventory/${id}/count`, { headers: this.getAuthHeaders() })
+      .subscribe({ next: () => this.fetchInventory() });
+  }
+
+  resetInventoryCounts(): void {
+    this.http.post(`${this.API_URL}inventory/reset-counts`, {}, { headers: this.getAuthHeaders() })
+      .subscribe({ next: () => this.fetchInventory() });
+  }
+
   addLoss(input: LossInput): Observable<unknown> {
     return this.http.post(`${this.API_URL}losses`, input, { headers: this.getAuthHeaders() }).pipe(
       tap({

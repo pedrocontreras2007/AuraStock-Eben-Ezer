@@ -125,6 +125,43 @@ const initServer = () => {
             if (e.message?.includes('Duplicate column')) console.log('→ inventory_date ya existe');
             else console.warn('⚠ Migración inventory_date (no crítica):', e.message);
         }
+
+        // Migración: columna sort_order
+        try {
+            const migSort = await db.mysqlquery(
+                `ALTER TABLE inventory_items ADD COLUMN sort_order INT DEFAULT 0 AFTER category`
+            );
+            if (migSort.success) {
+                console.log('✓ Migración sort_order OK');
+                const migSortOrder = await db.mysqlquery(
+                    `UPDATE inventory_items i
+                     JOIN (SELECT id, ROW_NUMBER() OVER (ORDER BY category ASC, name ASC) AS rn FROM inventory_items) AS o
+                     ON i.id = o.id SET i.sort_order = o.rn`
+                );
+                if (migSortOrder.success) console.log('✓ Orden inicial asignado');
+                else console.warn('⚠ Asignación orden inicial:', migSortOrder.error);
+            } else if (migSort.error?.includes('Duplicate column')) {
+                console.log('→ sort_order ya existe');
+            } else {
+                console.warn('⚠ Migración sort_order:', migSort.error);
+            }
+        } catch (e) {
+            if (e.message?.includes('Duplicate column')) console.log('→ sort_order ya existe');
+            else console.warn('⚠ Migración sort_order (no crítica):', e.message);
+        }
+
+        // Migración: columna counted_at
+        try {
+            const migCount = await db.mysqlquery(
+                `ALTER TABLE inventory_items ADD COLUMN counted_at TIMESTAMP NULL DEFAULT NULL AFTER sort_order`
+            );
+            if (migCount.success) console.log('✓ Migración counted_at OK');
+            else if (migCount.error?.includes('Duplicate column')) console.log('→ counted_at ya existe');
+            else console.warn('⚠ Migración counted_at:', migCount.error);
+        } catch (e) {
+            if (e.message?.includes('Duplicate column')) console.log('→ counted_at ya existe');
+            else console.warn('⚠ Migración counted_at (no crítica):', e.message);
+        }
     });
 };
 

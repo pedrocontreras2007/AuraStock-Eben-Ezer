@@ -2,6 +2,7 @@ import { Component, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { combineLatest, map, startWith } from 'rxjs';
+import { CdkDragDrop, CdkDropList, CdkDropListGroup, CdkDrag, moveItemInArray } from '@angular/cdk/drag-drop';
 import { DataService } from '../../core/services/data.service';
 import { InventoryCategory, InventoryItem, parseQuantity } from '../../core/models/inventory-item.model';
 import { AuthService } from '../../core/services/auth.service';
@@ -17,13 +18,17 @@ const DEFAULT_UNIT = 'unidades';
 @Component({
   selector: 'app-inventory',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ModalComponent, ToastComponent],
+  imports: [CommonModule, ReactiveFormsModule, ModalComponent, ToastComponent, CdkDropList, CdkDropListGroup, CdkDrag],
   templateUrl: './inventory.component.html',
   styleUrls: ['./inventory.component.css']
 })
 export class InventoryComponent {
   readonly filterControl = this.fb.nonNullable.control<string>('todos');
   readonly searchControl = this.fb.nonNullable.control<string>('');
+
+  reorderEnabled = false;
+  countEnabled = false;
+  private reorderGroups: { category: string; label: string; items: InventoryItem[] }[] | null = null;
 
   readonly vm$ = combineLatest([
     this.data.inventory$,
@@ -41,7 +46,23 @@ export class InventoryComponent {
           items: searched.filter(item => item.category === cat.value)
         }))
         .filter(g => g.items.length > 0);
-      return { groups, selectedFilter: filter, totalItems: searched.length, query: q };
+
+      if (this.reorderEnabled && !this.reorderGroups) {
+        this.reorderGroups = groups.map(g => ({ ...g, items: [...g.items] }));
+      }
+
+      const filteredCounted = searched.filter(i => i.countedAt != null).length;
+
+      return {
+        groups: this.reorderEnabled && this.reorderGroups ? this.reorderGroups : groups,
+        selectedFilter: filter,
+        totalItems: searched.length,
+        query: q,
+        filteredCounted,
+        totalItemsAll: items.length,
+        totalCounted: items.filter(i => i.countedAt != null).length,
+        countProgress: searched.length > 0 ? Math.round((filteredCounted / searched.length) * 100) : 0
+      };
     })
   );
 
@@ -183,6 +204,48 @@ export class InventoryComponent {
 
   onDeleteCancel(): void {
     this.deletingItem = undefined;
+  }
+
+  toggleReorder(): void {
+    this.reorderEnabled = !this.reorderEnabled;
+    if (!this.reorderEnabled) {
+      this.reorderGroups = null;
+    } else {
+      this.reorderGroups = null;
+      this.countEnabled = false;
+    }
+  }
+
+  toggleCountMode(): void {
+    this.countEnabled = !this.countEnabled;
+    if (this.reorderEnabled) {
+      this.reorderEnabled = false;
+      this.reorderGroups = null;
+    }
+  }
+
+  onDrop(event: CdkDragDrop<InventoryItem[]>, category: string): void {
+    const prev = event.previousIndex;
+    const curr = event.currentIndex;
+    if (prev === curr) return;
+    moveItemInArray(event.container.data, prev, curr);
+    const orders = event.container.data.map((item, idx) => ({
+      id: item.id,
+      sortOrder: idx + 1
+    }));
+    this.data.reorderInventory(orders);
+  }
+
+  toggleCounted(item: InventoryItem): void {
+    if (item.countedAt) {
+      this.data.markInventoryUncounted(item.id);
+    } else {
+      this.data.markInventoryCounted(item.id);
+    }
+  }
+
+  resetCounts(): void {
+    this.data.resetInventoryCounts();
   }
 
   sendWhatsApp(): void {
