@@ -147,8 +147,8 @@
                 
                 <span *ngIf="!countEnabled">{{ item.quantity }}{{ item.unit ? ' ' + item.unit : '' }}</span>
                 <div *ngIf="countEnabled" class="inline-quantity" (click)="$event.stopPropagation()">
-                  <input type="text" [value]="item.quantity" (change)="updateInlineQuantity(item, $event)" class="qty-input">
-                  <span class="unit-text">{{ item.unit ? ' ' + item.unit : '' }}</span>
+                  <input type="text" [value]="item.quantity" (change)="updateInlineQuantity(item, $event)" class="qty-input" placeholder="Cant.">
+                  <input type="text" [value]="item.unit || ''" (change)="updateInlineUnit(item, $event)" class="unit-input" placeholder="Unidad">
                 </div>
 
                 <small *ngIf="item.minStock != null">Mín: {{ item.minStock }}</small>

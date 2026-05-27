@@ -492,7 +492,8 @@ small {
   margin-top: 0.35rem;
 }
 
-.qty-input {
+.qty-input,
+.unit-input {
   width: 70px;
   padding: 0.35rem 0.5rem;
   border-radius: 8px;
@@ -503,16 +504,18 @@ small {
   margin: 0 !important;
 }
 
-.qty-input:focus {
+.unit-input {
+  width: 85px;
+}
+
+.qty-input:focus,
+.unit-input:focus {
   border-color: var(--ee-accent);
   outline: none;
   box-shadow: 0 0 0 2px rgba(210, 105, 30, 0.2);
 }
 
-.inline-quantity span.unit-text {
-  display: inline;
-  margin-top: 0;
-}
+
 
 /* ── Counted item ── */
 .counted {
