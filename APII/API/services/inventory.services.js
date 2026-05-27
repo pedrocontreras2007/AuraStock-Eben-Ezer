@@ -32,7 +32,7 @@ export default (db) => ({
             query += ' AND branch_id = ?';
             params.push(branchId);
         }
-        query += ' ORDER BY sort_order ASC, name ASC';
+        query += ' ORDER BY category ASC, sort_order ASC, name ASC';
 
         try {
             const results = await db.mysqlquery(query, params);
