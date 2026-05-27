@@ -317,6 +317,10 @@ export class InventoryComponent {
     return item.id;
   }
 
+  trackByCategory(_: number, group: { category: string }): string {
+    return group.category;
+  }
+
   isLowStock(item: InventoryItem): boolean {
     const q = parseQuantity(item.quantity);
     return q > 0 && q <= (item.criticalStock ?? 5);

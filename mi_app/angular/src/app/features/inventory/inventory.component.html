@@ -120,7 +120,7 @@
       </article>
 
       <ng-container *ngIf="vm.totalItems">
-        <div *ngFor="let group of vm.groups" class="category-group">
+        <div *ngFor="let group of vm.groups; trackBy: trackByCategory" class="category-group">
           <div class="category-header">
             <span class="material-symbols-outlined">{{ categoryIcons[group.category] || 'inventory_2' }}</span>
             <h4>{{ group.label }}</h4>
