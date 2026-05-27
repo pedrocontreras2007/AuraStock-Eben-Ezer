@@ -144,7 +144,13 @@
               </div>
               <div class="list__content">
                 <strong>{{ item.name }}</strong>
-                <span>{{ item.quantity }}{{ item.unit ? ' ' + item.unit : '' }}</span>
+                
+                <span *ngIf="!countEnabled">{{ item.quantity }}{{ item.unit ? ' ' + item.unit : '' }}</span>
+                <div *ngIf="countEnabled" class="inline-quantity" (click)="$event.stopPropagation()">
+                  <input type="text" [value]="item.quantity" (change)="updateInlineQuantity(item, $event)" class="qty-input">
+                  <span class="unit-text">{{ item.unit ? ' ' + item.unit : '' }}</span>
+                </div>
+
                 <small *ngIf="item.minStock != null">Mín: {{ item.minStock }}</small>
                 <small *ngIf="item.recordedByUser">Registrado por: {{ item.recordedByUser }}</small>
               </div>

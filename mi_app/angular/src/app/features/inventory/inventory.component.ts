@@ -244,6 +244,24 @@ export class InventoryComponent {
     }
   }
 
+  updateInlineQuantity(item: InventoryItem, event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const newQuantity = input.value.trim();
+    if (newQuantity !== '' && newQuantity !== item.quantity) {
+      this.data.updateInventoryItem(item.id, {
+        name: item.name,
+        quantity: newQuantity,
+        unit: item.unit,
+        category: item.category,
+        minStock: item.minStock ?? 10,
+        criticalStock: item.criticalStock ?? 5,
+        inventoryDate: this.todayISODate,
+        recordedBy: item.recordedBy,
+        recordedByUser: item.recordedByUser
+      });
+    }
+  }
+
   resetCounts(): void {
     this.data.resetInventoryCounts();
   }
