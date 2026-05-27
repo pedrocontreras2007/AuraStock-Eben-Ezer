@@ -300,8 +300,7 @@ export class InventoryComponent {
     const items = this.data.inventorySnapshot;
     const text = this.exportSvc.generateWhatsAppText([
       { title: 'AGOTADOS', icon: '❌', items: items.filter(i => parseQuantity(i.quantity) === 0) },
-      { title: 'STOCK CRÍTICO', icon: '⚠️', items: items.filter(i => { const q = parseQuantity(i.quantity); return q > 0 && q <= (i.criticalStock ?? 5); }) },
-      { title: 'STOCK BAJO', icon: '🔄', items: items.filter(i => { const q = parseQuantity(i.quantity); return q <= (i.minStock ?? 10) && q > (i.criticalStock ?? 5); }) }
+      { title: 'EN STOCK', icon: '✅', items: items.filter(i => parseQuantity(i.quantity) > 0) }
     ]);
     navigator.clipboard.writeText(text).then(() => {
       this.toast.show({ message: 'Texto copiado — pégalo en WhatsApp', type: 'success' });
