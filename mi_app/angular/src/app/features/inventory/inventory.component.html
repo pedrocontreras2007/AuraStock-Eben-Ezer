@@ -129,11 +129,13 @@
 
           <ul class="list"
               cdkDropList
+              [cdkDropListDisabled]="!reorderEnabled"
               [cdkDropListData]="group.items"
               (cdkDropListDropped)="onDrop($event, group.category)"
               [class.list--reorder]="reorderEnabled">
             <li *ngFor="let item of group.items; trackBy: trackById"
                 cdkDrag
+                [cdkDragDisabled]="!reorderEnabled"
                 [class.critical]="isLowStock(item)"
                 [class.out-of-stock]="isOutOfStock(item)"
                 [class.counted]="item.countedAt != null && countEnabled">
