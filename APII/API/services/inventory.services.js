@@ -121,9 +121,10 @@ export default (db) => ({
     },
 
     async markCounted(id, tenantId) {
-        const query = 'UPDATE inventory_items SET counted_at = NOW() WHERE id = ? AND tenant_id = ?';
+        const chileDate = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Santiago', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+        const query = 'UPDATE inventory_items SET counted_at = NOW(), inventory_date = ? WHERE id = ? AND tenant_id = ?';
         try {
-            const results = await db.mysqlquery(query, [id, tenantId]);
+            const results = await db.mysqlquery(query, [chileDate, id, tenantId]);
             if (!results.success) throw new Error(results.error);
             return { success: true, status: 200, error: null };
         } catch (error) {

@@ -66,7 +66,19 @@ export class InventoryComponent {
     })
   );
 
-  private readonly todayISODate = new Date().toISOString().slice(0, 10);
+  private get todayChileDate(): string {
+    const formatter = new Intl.DateTimeFormat('es-CL', {
+      timeZone: 'America/Santiago',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    });
+    const parts = formatter.formatToParts(new Date());
+    const y = parts.find(p => p.type === 'year')?.value;
+    const m = parts.find(p => p.type === 'month')?.value;
+    const d = parts.find(p => p.type === 'day')?.value;
+    return `${y}-${m}-${d}`;
+  }
 
   readonly form = this.fb.group({
     name: this.fb.nonNullable.control('', [Validators.required, Validators.maxLength(80)]),
@@ -75,7 +87,7 @@ export class InventoryComponent {
     unit: this.fb.control(DEFAULT_UNIT),
     minStock: this.fb.control(DEFAULT_MIN_STOCK),
     criticalStock: this.fb.control(DEFAULT_CRITICAL_STOCK),
-    inventoryDate: this.fb.control(this.todayISODate)
+    inventoryDate: this.fb.control(this.todayChileDate)
   });
 
   readonly categories: { value: InventoryCategory; label: string }[] = [
@@ -123,7 +135,7 @@ export class InventoryComponent {
     const raw = this.form.getRawValue();
     const recordedByUser = this.auth.user?.email ?? undefined;
 
-    const inventoryDate = raw.inventoryDate || this.todayISODate;
+    const inventoryDate = raw.inventoryDate || this.todayChileDate;
 
     if (this.editingItem) {
       this.data.updateInventoryItem(this.editingItem.id, {
@@ -161,7 +173,7 @@ export class InventoryComponent {
       category: item.category,
       minStock: String(item.minStock ?? 10),
       criticalStock: String(item.criticalStock ?? 5),
-      inventoryDate: item.inventoryDate || this.todayISODate
+      inventoryDate: item.inventoryDate || this.todayChileDate
     });
     
     // Al hacer click en ajustar, hacemos scroll hacia arriba para ver el formulario
@@ -180,7 +192,7 @@ export class InventoryComponent {
       unit: DEFAULT_UNIT,
       minStock: DEFAULT_MIN_STOCK,
       criticalStock: DEFAULT_CRITICAL_STOCK,
-      inventoryDate: this.todayISODate
+      inventoryDate: this.todayChileDate
     });
     this.editingItem = undefined;
   }
@@ -255,7 +267,7 @@ export class InventoryComponent {
         category: item.category,
         minStock: item.minStock ?? 10,
         criticalStock: item.criticalStock ?? 5,
-        inventoryDate: this.todayISODate,
+        inventoryDate: this.todayChileDate,
         recordedBy: item.recordedBy,
         recordedByUser: item.recordedByUser
       });
